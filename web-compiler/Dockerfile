@@ -22,7 +22,7 @@ RUN echo $PATH
 RUN arm-none-eabi-gcc --version
 
 # set up 
-#RUN python3
+#RUN
 
 # start webserver
-#CMD echo A
+CMD python3 server.py
