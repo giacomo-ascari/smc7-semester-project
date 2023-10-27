@@ -11,7 +11,7 @@ In order to run the same image detached from the terminal substitute `-i` with `
 For M1 users, on step 2, use `docker build -t web-compiler . --platform linux/x86_64`
 
 # Run the python server
-Simple python server running on port 8080. It accepts a file, puts it into a directory with a random id, copies necessary build files into that directory and compiles the file.
+Simple python server running on port 8000. It accepts a file, puts it into a directory with a random id, copies necessary build files into that directory and compiles the file.
 
 ## Requirements
 - Python 3
@@ -21,6 +21,6 @@ Simple python server running on port 8080. It accepts a file, puts it into a dir
 - subprocess
 
 ## Manual
-1. python server.py
+1. python3 server.py
 2. Do a request to upload file
 `curl -X PUT --upload-file <your_file_name> http://localhost:8000`
