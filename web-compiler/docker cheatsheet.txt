@@ -1,0 +1,17 @@
+#create image from Dockerfile
+docker build -t chatgptreports .
+
+#get the image id with
+docker images
+
+#run the container
+docker run -d -p 81:80 imageidhere
+
+#to list containers
+docker ps
+
+#to stop
+docker stop containername
+
+#to remove image
+docker rmi imageid
