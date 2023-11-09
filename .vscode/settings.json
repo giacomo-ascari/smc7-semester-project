@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "string": "cpp"
+        "string": "cpp",
+        "__config": "cpp",
+        "__node_handle": "cpp",
+        "cstdio": "cpp",
+        "new": "cpp",
+        "complex": "cpp"
     }
 }
