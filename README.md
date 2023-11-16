@@ -1,26 +1,39 @@
 # smc7-semester-project
 
-# Run the web-compiler docker container
+## Folder structure:
+**web-compiler**:
+Contains everything required to compile a project for DaisyDub. This includes the python-software to execute the compilation and the required libraries for compilation:
+- DaisySP
+- libDaisy
+- Dubby.h
+- DspBlock.h
+
+> All files of the web-compiler should be changed with caution!
+
+**playground**:
+Contains a playground, to test your DspBlock implementations on either the DaisySeed or DaisyDub.
+
+## Run the web-compiler docker container
 The web-compiler takes care of the configuration of the various tools required to compile C++ for the Dubby. The base image of the container is a raw Ubuntu image, to which the build tools, the ARM toolchain and the webserver are later added.
 
-## Manual
+### Manual
 1. Change current directory with `cd web-compiler`
 2. Build the image with `docker build -t web-compiler .`
 3. Run the image interactively with `docker run -i -p 8000:8000 web-compiler`
 In order to run the same image detached from the terminal substitute `-i` with `-d`
 For M1 users, on step 2, use `docker build -t web-compiler . --platform linux/x86_64`
 
-# Run the python server
+## Run the python server
 Simple python server running on port 8000. It accepts a file, puts it into a directory with a random id, copies necessary build files into that directory and compiles the file.
 
-## Requirements
+### Requirements
 - Python 3
 - uuid
 - http.server
 - shutil
 - subprocess
 
-## Manual
+### Manual
 1. python3 server.py
 2. Do a request to upload file
 `curl -X PUT --upload-file <your_file_name> http://localhost:8000`

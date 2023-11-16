@@ -1,6 +1,7 @@
 #include <string>
 #include "daisy_seed.h"
 #include "daisysp.h"
+#include "Dubby.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -72,37 +73,56 @@ private:
 class DspBlock {
 public:
     // Constructor to initialize "every" DspBlock
-    DspBlock(std::vector<float*> inputChannels, int numberOuts, int bufferLenth)
+    DspBlock(int numberIns, int numberOuts, int bufferLength)
     {
-        this->bufferLength = bufferLenth;
+        this->bufferLength = bufferLength;
         // Initialize the output Multichannel buffer
         //  Note: How many DspBlocks will there be that have more than one output? Probably not many and the ones that are, we can probably neglect
         out = new MultiChannelBuffer(numberOuts, bufferLength);
-        this->inputChannels = inputChannels;
+        this->inputChannels = new float*[numberIns];
     };
     ~DspBlock() = default;
     // Override this function, to handle everything that needs to be only handled once at the beginning
     virtual void initialize(float samplerate) = 0;
     virtual void handle() = 0;
-    virtual std::string getName() = 0;
     float * getOutputChannel(int channelNumber) {
         return out->getChannel(channelNumber);
+    }
+    void setInputReference(float * inputRef, int channelNumber)
+    {
+        this->inputChannels[channelNumber] = inputRef;
+    }
+    float * getInputReference(int channelNumber)
+    {
+        return this->inputChannels[channelNumber];
     }
 
 protected:
     MultiChannelBuffer* out;
     int bufferLength;
-    std::vector<float*> inputChannels;
+    float** inputChannels;
+};
+
+class KnobMap : public DspBlock {
+public:
+    KnobMap(Dubby& dubby, int knobNumber, int bufferLength) : DspBlock(0, 1, bufferLength), dubby (dubby)
+    {
+        this->knob = static_cast<Dubby::Ctrl>(knobNumber);
+    };
+    ~KnobMap() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+protected:
+    Dubby::Ctrl knob;
+    Dubby& dubby;
 };
 
 class Osc : public DspBlock {
 public:
-    Osc(std::vector<float*> inputChannels, int bufferLenth);
+    Osc(int bufferLenth);
     ~Osc() = default;
     void initialize(float samplerate) override;
-    void initialize(float samplerate, uint8_t wf);
     void handle() override;
-    std::string getName() override;
     
 private:
     Oscillator osc;
@@ -111,13 +131,28 @@ private:
 class ConstValue : public DspBlock {
 public:
     // Constructor that automatically initializes DspBlock with a fixed inputVector and one channel
-    ConstValue(float value, int bufferLength) : DspBlock(std::vector<float*>(bufferLength, 0), 1, bufferLength) {
+    ConstValue(float value, int bufferLength) : DspBlock(0, 1, bufferLength) {
         this->val = value;
     };
     ~ConstValue() = default;
     void initialize(float samplerate) override;
     void handle() override { };
-    std::string getName() override;
 private:
     float val;
+};
+
+class Multiplier : public DspBlock {
+    public:
+    Multiplier(int bufferLength) : DspBlock(2, 1, bufferLength) {};
+    ~Multiplier() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+};
+
+class Unipolariser : public DspBlock {
+    public:
+    Unipolariser(int bufferLength) : DspBlock(1, 1, bufferLength) {};
+    ~Unipolariser() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
 };
