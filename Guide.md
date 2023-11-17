@@ -75,3 +75,13 @@ Of course, you want to test your changes! You can do that in the Playgrounds As 
     - If a block you want to "handle" requires input of another block, the other block needs to be called first!
 
 > Special note: there should be only once instance of `KnobMap` per knob. If you want to route a knob to multiple Blocks, just do step 4. for every Block you want to feed with knob values
+
+## Flash the Dubby:
+- open a command line / or do it in Terminal from VSCode
+- navigate to the folder of either the DubbySandbox or the SeedSandbox
+    - use the console cmd `pwd` to show your current directory
+    - use `cd someFolder` to navigate to a folder within your current directory
+- run `make clean; make` to compile
+    - make sure make is installed
+- bring the Dubby/Seed into dfu mode
+- flash by running `make program-dfu`
