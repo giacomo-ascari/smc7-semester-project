@@ -7,39 +7,45 @@ using namespace daisy;
 using namespace daisysp;
 
 Dubby dubby;
-DspBlock * osc1;
+
+
+MultiChannelBuffer * physical_ins;
 DspBlock * lfo;
-DspBlock * f_osc1;
-DspBlock * a_osc1;
 DspBlock * f_lfo;
-DspBlock * freqMulti;
-DspBlock * unipolariser;
-DspBlock * ampMulti;
-DspBlock * knobMulti;
+DspBlock * lfoFreqMulti;
+DspBlock * tremolo;
+DspBlock * fdbDelay;
 DspBlock * knob1;
 DspBlock * knob2;
+DspBlock * knob3;
+DspBlock * knob4;
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
-    float * ins = &in[0];
+    for(int i = 0; i < 4; i++)
+    {
+        physical_ins->writeChannel(in[i], i);
+    }
     double sumSquared[4] = { 0.0f };
-    knob2->handle();
+    
     knob1->handle();
-    knobMulti->handle();
-    lfo->handle();
-    unipolariser->handle();
-    freqMulti->handle();
-    osc1->handle();
-    ampMulti->handle();
+    knob2->handle();
+    knob3->handle();
+    knob4->handle();
 
-    float * oscOut = ampMulti->getOutputChannel(0);
+    lfoFreqMulti->handle();
+    lfo->handle();
+    fdbDelay->handle();
+    tremolo->handle();
+
+    float * oscOut = tremolo->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
         {
             float sample = out[j][i];
             sumSquared[j] += sample * sample;
-            out[j][i] = oscOut[i] * 0.3;
+            out[j][i] = oscOut[i];
         } 
         dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .5f;   
 	}
@@ -59,40 +65,34 @@ int main(void)
 	dubby.seed.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
     dubby.ProcessAllControls();
 
-    knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
+    physical_ins = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
+
     knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
+    knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
+    knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
+    knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
-
-    f_osc1 = new ConstValue(800, AUDIO_BLOCK_SIZE);
-    f_osc1->initialize(48000);
-    a_osc1 = new ConstValue(1, AUDIO_BLOCK_SIZE);
-    a_osc1->initialize(48000);
-
-    f_lfo = new ConstValue(100, AUDIO_BLOCK_SIZE);
+    f_lfo = new ConstValue(40, AUDIO_BLOCK_SIZE);
     f_lfo->initialize(48000);
 
-    knobMulti = new Multiplier(AUDIO_BLOCK_SIZE);
-    knobMulti->setInputReference(f_lfo->getOutputChannel(0), 0);
-    knobMulti->setInputReference(knob2->getOutputChannel(0), 1);
+    lfoFreqMulti = new NMultiplier(2, AUDIO_BLOCK_SIZE);
+    lfoFreqMulti->setInputReference(knob3->getOutputChannel(0), 0);
+    lfoFreqMulti->setInputReference(f_lfo->getOutputChannel(0), 1);
 
     lfo = new Osc(AUDIO_BLOCK_SIZE);
     lfo->initialize(48000);
-    lfo->setInputReference(knobMulti->getOutputChannel(0), 0);
+    lfo->setInputReference(lfoFreqMulti->getOutputChannel(0), 0);
 
-    unipolariser = new Unipolariser(AUDIO_BLOCK_SIZE);
-    unipolariser->setInputReference(lfo->getOutputChannel(0), 0);
+    fdbDelay = new FeedbackDelay(12000, AUDIO_BLOCK_SIZE);
+    fdbDelay->initialize(48000);
+    fdbDelay->setInputReference(physical_ins->getChannel(0), 0);
+    fdbDelay->setInputReference(knob4->getOutputChannel(0), 1);
 
-    freqMulti = new Multiplier(AUDIO_BLOCK_SIZE);
-    freqMulti->setInputReference(unipolariser->getOutputChannel(0), 0);
-    freqMulti->setInputReference(f_osc1->getOutputChannel(0), 1);
-
-    osc1 = new Osc(AUDIO_BLOCK_SIZE);
-    osc1->initialize(48000);
-    osc1->setInputReference(freqMulti->getOutputChannel(0), 0);
-
-    ampMulti = new Multiplier(AUDIO_BLOCK_SIZE);
-    ampMulti->setInputReference(osc1->getOutputChannel(0), 0);
-    ampMulti->setInputReference(knob1->getOutputChannel(0), 1);
+    tremolo = new NMultiplier(4, AUDIO_BLOCK_SIZE);
+    tremolo->setInputReference(lfo->getOutputChannel(0), 0);
+    tremolo->setInputReference(knob2->getOutputChannel(0), 1);
+    tremolo->setInputReference(fdbDelay->getOutputChannel(0), 2);
+    tremolo->setInputReference(knob1->getOutputChannel(0), 3);
 
     dubby.DrawLogo(); 
     System::Delay(2000);

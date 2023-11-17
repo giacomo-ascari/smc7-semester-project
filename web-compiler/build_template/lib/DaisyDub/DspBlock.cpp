@@ -11,7 +11,8 @@ void Osc::initialize(float samplerate)
         osc.SetFreq(800);
 }
 
-void Osc::handle() {
+void Osc::handle() 
+{
         // Read the input frequency buffer
         float * freqIn = getInputReference(0);
         // Set the frequency once per buffer (with small buffer lengths it should be sufficient for now)
@@ -26,6 +27,30 @@ void Osc::handle() {
                 out->writeSample(osc_out, i, 0);
         }
     
+}
+
+void FeedbackDelay::initialize(float samplerate)
+{
+        for (int i = 0; i < delayLengthSamples; i++)
+        {
+                circBuf[i] = 0;
+        }
+}
+
+void FeedbackDelay::handle()
+{
+        float * audioIn = getInputReference(0);
+        float * ampDelay = getInputReference(1);
+
+        for(int i = 0; i < bufferLength; i++)
+        {       
+                int readFrom = (circBufPos + i) % delayLengthSamples;
+                float output = (1 - ampDelay[i]) * audioIn[i] + ampDelay[i] * circBuf[readFrom];
+                out->writeSample(output, i, 0);
+                circBuf[readFrom] = output;
+        }
+        circBufPos = (circBufPos + bufferLength) % delayLengthSamples;
+
 }
 
 void KnobMap::handle()
@@ -46,14 +71,15 @@ void ConstValue::initialize(float samplerate)
         }
 }
 
-void Multiplier::handle()
+void NMultiplier::handle()
 {
-        float * in1 = getInputReference(0);
-        float * in2 = getInputReference(1);   
-
         for (int i = 0; i < bufferLength; i++) 
         {
-                float mul = in1[i] * in2[i];
+                float mul = 1;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        mul *= getInputReference(k)[i];
+                }
                 out->writeSample(mul, i, 0);
         }
 }

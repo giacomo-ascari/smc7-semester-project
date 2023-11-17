@@ -10,7 +10,8 @@ using namespace daisysp;
  * Stores a variable amount of channels sequentially in a single buffer in the format of
  * { A_1, A_2, B_1, B_2, ..., N_1, N_2} and provides access to individual channels.
 */
-class MultiChannelBuffer {
+class MultiChannelBuffer 
+{
 public:
     MultiChannelBuffer(int numChannels, int bufferSizePerChannel) 
     {
@@ -35,7 +36,7 @@ public:
     };
 
     // Write data to a channel by just specifying its channel number
-    void writeChannel(float * data, int channelNumber)
+    void writeChannel(const float * data, int channelNumber)
     {
         // Check if the provided channelNumber is with in the range of existing channels
         if (channelNumber < 0 || channelNumber >= numChannels) {
@@ -103,6 +104,13 @@ protected:
     float** inputChannels;
 };
 
+/**
+ * Block to integrate physical knobs.
+ * Assign the knob (0 - 3) using the constructor. Also please assign each knob only once.
+ * 0 Inputs.
+ * 1 Output:
+ * - channel 0: knob value (0 - 1), its read only once per block, so all samples in this channel should be equal
+*/
 class KnobMap : public DspBlock {
 public:
     KnobMap(Dubby& dubby, int knobNumber, int bufferLength) : DspBlock(0, 1, bufferLength), dubby (dubby)
@@ -117,6 +125,14 @@ protected:
     Dubby& dubby;
 };
 
+/**
+ * Simple oscillator using the underlying DaisySP::Oscillator
+ * initalize() must be called beforehand!
+ * 1 Input:
+ * - channel 0: desired frequency, provide it in Hz
+ * 1 Output:
+ * - oscillator output (-1 - 1)
+*/
 class Osc : public DspBlock {
 public:
     Osc(int bufferLenth);
@@ -128,6 +144,40 @@ private:
     Oscillator osc;
 };
 
+/**
+ * Simple feedback delay. 
+ * Assign length in samples in the constructor.
+ * 2 Inputs:
+ * - channel 0: audio in
+ * - channel 1: dry/wet mix with 0 being only dry and 1 being only wet signal
+ * 1 Output:
+ * - the (wet) signal
+*/
+class FeedbackDelay : public DspBlock {
+public:
+    FeedbackDelay(int lengthSamples, int bufferLength) : DspBlock(2, 1, bufferLength) {
+        this->circBuf = new float[lengthSamples];
+        this->circBufPos = 0;
+        this->delayLengthSamples = lengthSamples;
+    };
+    ~FeedbackDelay() = default;
+    void initialize(float samplerate) override;
+    void handle() override;
+private:
+    float * circBuf;
+    int circBufPos;
+    int delayLengthSamples;
+};
+
+/**
+ * Block to store a constant value.
+ * Assing the constant value using the constructor.
+ * Use it's initialize method!
+ * The handle method, does not need to be called.
+ * 0 Inputs
+ * 1 Outpus:
+ * - a buffer consisting of the same constant value, everytime.
+*/
 class ConstValue : public DspBlock {
 public:
     // Constructor that automatically initializes DspBlock with a fixed inputVector and one channel
@@ -141,14 +191,35 @@ private:
     float val;
 };
 
-class Multiplier : public DspBlock {
-    public:
-    Multiplier(int bufferLength) : DspBlock(2, 1, bufferLength) {};
-    ~Multiplier() = default;
+
+/**
+ * A block to multiply the output of n channels sample-wise.
+ * Assign the amount of input channels in the constructor
+ * n inputs:
+ * - [0..n] channels to multiply with each other
+ * 1 output:
+ * - the result of the multiplication
+*/
+class NMultiplier : public DspBlock {
+public:
+    NMultiplier(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~NMultiplier() = default;
     void initialize(float samplerate) override {};
     void handle() override;
+private:
+    int numInputs;
 };
 
+/**
+ * A block to make a signal unipolar by using the absolute value of the input.
+ * 1 Input:
+ * - the input signal
+ * 1 output:
+ * - the absolute / unipolar signal
+*/
 class Unipolariser : public DspBlock {
     public:
     Unipolariser(int bufferLength) : DspBlock(1, 1, bufferLength) {};

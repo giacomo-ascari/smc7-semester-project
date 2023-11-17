@@ -5,6 +5,7 @@ The file is located in `web-compiler/buildtemplate/lib/DaisyDub/DspBlock.h`
 
 1. Copy one of the existing blocks -> the structure stays roghly the same
 2. Update class name, con- and destructor and number of in-/outputs.
+3. Add documentation to your new block. Which channel does what? What kind of values are expected?
 
 *Example*
 ```
@@ -64,9 +65,11 @@ Of course, you want to test your changes! You can do that in the Playgrounds As 
     - if the DspBlock implements the initialize method, you need to call it: `<someName> -> initialize(48000);`
 4. Route inputs with outputs appropriateley
     - supposing you have setup more blocks:
-    - `<someName> -> setInputReference(someOtherBlock -> getOutputChannel(n), k);`
-    - this routes the *nth* output of `someOtherBlock` to the *kth* input channel of `someName`
-    - make sure, that `someOtherBlock` has been properly initialized (meaning the constructor here) before
+        - `<someName> -> setInputReference(someOtherBlock -> getOutputChannel(n), k);`
+        - this routes the *nth* output of `someOtherBlock` to the *kth* input channel of `someName`
+        - make sure, that `someOtherBlock` has been properly initialized (meaning the constructor here) before
+    - to route input from the physical input
+        - `<someName>->setInputReference(physical_ins->getChannel(n), 0);` with n being the input channel number 0-3
 5. Within `void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)` call the handle method of your block by `<someName> -> handle()`
     - Keep in mind to call all the `handle()`-methods in the correct order
     - If a block you want to "handle" requires input of another block, the other block needs to be called first!
