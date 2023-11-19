@@ -126,6 +126,29 @@ protected:
 };
 
 /**
+ * Outputs an 1-sample impulse in the specified intervall.
+ * Needs to be initialized
+ * 1 Inputs:
+ * - channel 0: tick frequency in Hz
+ * 1 Output:
+ * - channel 0: 0s, when no tick is produced, 1 for every tick
+*/
+class Clock : public DspBlock {
+public:
+    Clock(int bufferLength) : DspBlock(1, 1, bufferLength)
+    {
+        this->samplesSinceTick = 0;
+    };
+    ~Clock() = default;
+    void initialize(float samplerate) override;
+    void handle() override;
+private:
+    int samplesSinceTick;
+    float samplerate;
+};
+
+
+/**
  * Simple oscillator using the underlying DaisySP::Oscillator
  * initalize() must be called beforehand!
  * 1 Input:
@@ -142,6 +165,29 @@ public:
     
 private:
     Oscillator osc;
+};
+
+/**
+ * ADSR Envelope using DaisySPs implementation.
+ * Call initialize.
+ * 4 Input:
+ * - channel 0: trigger
+ * - channel 1: attack in seconds
+ * - channel 2: decay in seconds
+ * - channel 3: sustain in seconds
+ * - channel 4: release in seconds
+ * 1 Output:
+ * - envelope output (0 - 1)
+*/
+class ADSREnv : public DspBlock {
+public:
+    ADSREnv(int bufferLength) : DspBlock(4, 1, bufferLength) { };
+    ~ADSREnv() = default;
+    void initialize(float samplerate) override;
+    void handle() override;
+    
+private:
+    Adsr env;
 };
 
 /**

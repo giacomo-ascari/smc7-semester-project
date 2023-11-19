@@ -1,5 +1,37 @@
 #include "DspBlock.h"
 
+void Clock::initialize(float samplerate)
+{
+        this->samplerate = samplerate;
+}
+
+void Clock::handle()
+{
+        float freqHz = getInputReference(0)[0];
+        if (freqHz == 0 )
+        {
+                // Avoid 0-division later
+                freqHz = 0.0000001;
+        }
+        // Note: In case of decimal periods, this will always round down
+        int periodSamples = (1 / freqHz) * samplerate;
+
+        for (int i = 0; i < bufferLength; i++)
+        {
+                if (samplesSinceTick == periodSamples - 1)
+                {
+                        out->writeSample(1.f, i, 0);
+                        samplesSinceTick = 0;
+                } else
+                {
+                        out->writeSample(0, i, 0);
+                        samplesSinceTick++;
+                }
+        }
+
+        samplesSinceTick = samplesSinceTick % periodSamples;
+}
+
 Osc::Osc(int bufferLenth) : Osc::DspBlock(1, 1, bufferLenth) {};
 
 // Initializes the DaisySp::Oscillator with some default values
@@ -27,6 +59,34 @@ void Osc::handle()
                 out->writeSample(osc_out, i, 0);
         }
     
+}
+
+void ADSREnv::initialize(float samplerate)
+{
+        env.Init(samplerate);
+}
+
+void ADSREnv::handle()
+{       
+        float * trigger = getInputReference(0);
+        float attack = abs(getInputReference(1)[0]);
+        float decay = abs(getInputReference(2)[0]);
+        float sustain = abs(getInputReference(3)[0]);
+        float release = abs(getInputReference(4)[0]);
+
+        env.SetAttackTime(attack);
+        env.SetDecayTime(decay);
+        env.SetSustainLevel(sustain);
+        env.SetReleaseTime(release);
+
+        for(int i = 0; i < bufferLength; i++)
+        {
+                if( trigger[i] == 1)
+                {
+                        env.Retrigger(false);
+                }
+                out->writeSample(env.Process(false), i, 0);
+        }
 }
 
 void FeedbackDelay::initialize(float samplerate)
