@@ -273,3 +273,31 @@ class Unipolariser : public DspBlock {
     void initialize(float samplerate) override {};
     void handle() override;
 };
+
+class VolumeControl : public DspBlock {
+    public:
+    VolumeControl(int bufferLength) : DspBlock(2 ,1 , bufferLength){};
+   
+    ~VolumeControl() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+
+
+};
+
+class Mix : public DspBlock {
+    public:
+    Mix(int numInputs, int numOutputs, int bufferLength) : DspBlock(numInputs, numOutputs, bufferLength)
+    {
+        this->numInputs = numInputs;
+        this->numOutputs = numOutputs;
+    }
+    ~Mix() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+
+    private:
+    int numInputs;
+    int numOutputs;
+
+};

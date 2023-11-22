@@ -15,12 +15,10 @@ DspBlock * knob2;
 DspBlock * knob3;
 DspBlock * knob4;
 
-DspBlock * lfo;
-DspBlock * f_clock;
-DspBlock * f_osci;
-DspBlock * osci;
-DspBlock * ampAdsr;
-DspBlock * fdbDelay;
+DspBlock * f;
+DspBlock * sine;
+
+
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
@@ -35,12 +33,11 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     knob3->handle();
     knob4->handle();
     
-    lfo->handle();
-    osci->handle();
-    ampAdsr->handle();
-    fdbDelay->handle();
+    f->handle();
+    sine->handle();
+  
 
-    float * oscOut = fdbDelay->getOutputChannel(0);
+    float * oscOut = sine->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
@@ -74,24 +71,16 @@ int main(void)
     knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
     knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
-    lfo = new Osc(AUDIO_BLOCK_SIZE);
-    lfo->initialize(48000);
-    lfo->setInputReference(knob1->getOutputChannel(0), 0);
 
-    f_osci = new ConstValue(800, AUDIO_BLOCK_SIZE);
-    f_osci->initialize(48000);
-    osci = new Osc(AUDIO_BLOCK_SIZE);
-    osci->initialize(48000);
-    osci->setInputReference(f_osci->getOutputChannel(0), 0);
+   
 
-    ampAdsr = new NMultiplier(2, AUDIO_BLOCK_SIZE);
-    ampAdsr->setInputReference(osci->getOutputChannel(0), 0);
-    ampAdsr->setInputReference(lfo->getOutputChannel(0), 1);
+    f = new ConstValue(220, AUDIO_BLOCK_SIZE);
+    f->initialize(48000);
 
-    fdbDelay = new FeedbackDelay(512, AUDIO_BLOCK_SIZE);
-    fdbDelay->initialize(48000);
-    fdbDelay->setInputReference(ampAdsr->getOutputChannel(0), 0);
-    fdbDelay->setInputReference(knob2->getOutputChannel(0), 1);
+    sine = new Osc(AUDIO_BLOCK_SIZE);
+    sine->initialize(48000);
+    sine->setInputReference(f->getOutputChannel(0), 0);
+    
 
     dubby.DrawLogo(); 
     System::Delay(2000);

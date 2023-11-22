@@ -153,3 +153,43 @@ void Unipolariser::handle()
                 out->writeSample(abs(in[i]), i, 0);
         }
 }
+
+                //--------Volume Controller----------//
+
+void VolumeControl::handle()
+{
+        float * amp = getInputReference(0);
+        float in = 0;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {
+             in = getInputReference(1)[sample];
+             in *= amp[sample];
+             
+             out->writeSample(in,sample,0);   
+        }
+
+}
+
+                //--------Mixer----------//
+
+void Mix::handle()
+{
+        float in = 0;
+        for (int sample = 0; sample < bufferLength; sample++)
+        {       
+
+                for (int chIn = 0; chIn < numInputs; chIn++)
+                {
+                in += getInputReference(chIn)[sample];
+                }
+
+                in /= numInputs;
+                
+                for(int ch = 0; ch < numOutputs; ch++)
+                {       
+                        out->writeSample(in,sample,ch);
+                }
+        
+        }
+}
