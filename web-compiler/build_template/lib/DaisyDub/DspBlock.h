@@ -301,3 +301,15 @@ class Mix : public DspBlock {
     int numOutputs;
 
 };
+
+//  ------- white noise generator-------
+
+class NoiseGen : public DspBlock {
+public:
+    NoiseGen(int bufferLenth) : DspBlock(1,1, bufferLength){};
+    ~NoiseGen() = default;
+    void initialize(float samplerate) override;
+    void handle() override;
+    
+
+};

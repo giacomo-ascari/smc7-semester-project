@@ -1,5 +1,6 @@
 #include "DspBlock.h"
 
+
 void Clock::initialize(float samplerate)
 {
         this->samplerate = samplerate;
@@ -192,4 +193,29 @@ void Mix::handle()
                 }
         
         }
+}
+
+//------------ White noise generator-----------
+#include <cstdlib>
+#include <ctime>
+
+NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspBlock(1, 1, bufferLenth) {};
+
+void NoiseGen::handle() 
+{       
+        // Seed the random number generator with the current time
+    std::srand(static_cast<unsigned int>(std::time(0)));
+
+        float * amp = getInputReference(0);
+        float noiseOut=0;
+        
+        for(auto sample = 0; sample < bufferLength; sample++)
+        {
+                noiseOut = (2.0 * std::rand() / RAND_MAX) - 1.0;
+                noiseOut *= amp[sample];
+
+        
+                out->writeSample(noiseOut, sample, 0);
+        }
+    
 }
