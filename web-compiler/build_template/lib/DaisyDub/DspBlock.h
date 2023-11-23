@@ -306,9 +306,9 @@ class Mix : public DspBlock {
 
 class NoiseGen : public DspBlock {
 public:
-    NoiseGen(int bufferLenth) : DspBlock(1,1, bufferLength){};
+    NoiseGen(int bufferLenth);
     ~NoiseGen() = default;
-    void initialize(float samplerate) override;
+    void initialize(float samplerate) override {};
     void handle() override;
     
 

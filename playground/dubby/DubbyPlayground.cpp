@@ -15,8 +15,8 @@ DspBlock * knob2;
 DspBlock * knob3;
 DspBlock * knob4;
 
-DspBlock * f;
-DspBlock * sine;
+
+
 
 
 
@@ -32,19 +32,21 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     knob2->handle();
     knob3->handle();
     knob4->handle();
+   
+
     
-    f->handle();
-    sine->handle();
+
+    
   
 
-    float * oscOut = sine->getOutputChannel(0);
+    float * oscOut =<place something>->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
         {
             float sample = out[j][i];
             sumSquared[j] += sample * sample;
-            out[j][i] = oscOut[i];
+            out[j][i] = oscOut[i] * 0.25;
         } 
         dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .1f;   
 	}
@@ -71,15 +73,15 @@ int main(void)
     knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
     knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
+    
+
+
+
+
+    
+
 
    
-
-    f = new ConstValue(220, AUDIO_BLOCK_SIZE);
-    f->initialize(48000);
-
-    sine = new Osc(AUDIO_BLOCK_SIZE);
-    sine->initialize(48000);
-    sine->setInputReference(f->getOutputChannel(0), 0);
     
 
     dubby.DrawLogo(); 
