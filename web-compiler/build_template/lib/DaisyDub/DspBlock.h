@@ -238,6 +238,13 @@ private:
 };
 
 
+
+
+// -----------------------------MATH OPERATIORS ------------------------------------//
+
+//----Multiplier----//
+//Multiplies tow diferent input values and outputs the result.
+
 /**
  * A block to multiply the output of n channels sample-wise.
  * Assign the amount of input channels in the constructor
@@ -258,6 +265,60 @@ public:
 private:
     int numInputs;
 };
+
+
+//-----Summation----//
+//Add n diferent channel input values and outputs the result
+class Sum : public DspBlock {
+public:
+    Sum(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Sum() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+
+//---Subtraction----/
+//Subtract n diferent channel input values and outputs the result
+class Sub : public DspBlock {
+public:
+    Sub(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Sub() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+
+//---Division----//
+//Divides n diferent channel input values and outputs the result
+class Div : public DspBlock {
+public:
+    Div(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Div() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+//-----------------------------END OF MATH OPERATORS------------------------------//
+
+
+
+
 
 /**
  * A block to make a signal unipolar by using the absolute value of the input.
@@ -303,6 +364,7 @@ class Mix : public DspBlock {
 };
 
 //  ------- white noise generator-------
+// This 
 
 class NoiseGen : public DspBlock {
 public:
@@ -311,5 +373,20 @@ public:
     void initialize(float samplerate) override {};
     void handle() override;
     
+
+};
+
+//--------BPM related time signature to samples converter------//
+
+// the user insert BPM , Note value , and dotted (if it is preferred)
+// then the block converts the musical time into time in samples depending on BPM
+// Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
+// Dotted Off = 0; Dotted On = 1;
+class MusicalTime : public DspBlock {
+public:
+    MusicalTime(int bufferlength);
+    ~MusicalTime() = default;
+    void initialize(float samplerate) override{};
+    void handle()override;
 
 };

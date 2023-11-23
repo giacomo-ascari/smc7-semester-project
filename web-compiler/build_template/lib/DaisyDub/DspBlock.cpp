@@ -132,6 +132,10 @@ void ConstValue::initialize(float samplerate)
         }
 }
 
+// -----------------------------MATH OPERATIORS ------------------------------------//
+
+//----Multiplier----//
+//Multiplies n diferent channel input values and outputs the result
 void NMultiplier::handle()
 {
         for (int i = 0; i < bufferLength; i++) 
@@ -144,6 +148,56 @@ void NMultiplier::handle()
                 out->writeSample(mul, i, 0);
         }
 }
+
+//-----Summation----//
+//Add n diferent channel input values and outputs the result
+void Sum::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float sum = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        sum += getInputReference(k)[i];
+                }
+                out->writeSample(sum, i, 0);
+        }
+}
+//---Subtraction----/
+//Subtract n diferent channel input values and outputs the result
+void Sub::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float sub = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        sub -= getInputReference(k)[i];
+                }
+                out->writeSample(sub, i, 0);
+        }
+}
+
+//---Division----//
+//Divides n diferent channel input values and outputs the result
+
+void Div::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float div = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        div /= getInputReference(k)[i];
+                }
+                out->writeSample(div, i, 0);
+        }
+}
+
+//---------------------------- END OF MATH OPERATORS --------------------------//
+
+
+
 
 void Unipolariser::handle()
 {
@@ -218,5 +272,38 @@ void NoiseGen::handle()
         
                 out->writeSample(noiseOut, sample, 0);
         }
+    
+}
+
+//--------BPM related time signature to samples converter------//
+// the user insert BPM , Note value , and dotted (if it is preferred)
+// then the block converts the musical time into time in samples depending on BPM
+// Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
+// Dotted Off = 0; Dotted On = 1;
+#include <cmath>
+
+void MusicalTime::handle() 
+{       
+        float * dotted = 0;
+        int fs = 48000;
+        float * bpm = getInputReference(0);
+        float * notevalue = getInputReference(1);
+        float * dotted = getInputReference(2);
+        float delayInsamples;
+    for(int sample = 0; sample < bufferLength; sample++)   
+       {
+        if(dotted[sample] == 1)
+        {
+                dotted[sample] = 0.5;
+        }
+
+        delayInsamples = round ( (60 / bpm[sample]) * fs * (notevalue[sample] + dotted[sample]) );
+
+        out->writeSample(delayInsamples, sample, 0);
+
+       }
+        
+        
+       
     
 }
