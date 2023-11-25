@@ -15,6 +15,15 @@ DspBlock * knob2;
 DspBlock * knob3;
 DspBlock * knob4;
 
+DspBlock * BPM;
+DspBlock * NoteVal;
+DspBlock * dotSwitch;
+DspBlock * noise;
+DspBlock * rhythm;
+DspBlock * lfofreq;
+DspBlock * lfo;
+DspBlock * mul;
+
 
 
 
@@ -33,13 +42,21 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     knob3->handle();
     knob4->handle();
    
+   BPM->handle();
+   dotSwitch->handle();
+   NoteVal->handle();
+   rhythm->handle();
+   lfofreq->handle();
+   lfo->handle();
+   noise->handle();
+  
 
     
 
     
   
 
-    float * oscOut =<place something>->getOutputChannel(0);
+    float * oscOut = noise->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
@@ -74,7 +91,35 @@ int main(void)
     knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
     
+   
+    BPM = new ConstValue(60, AUDIO_BLOCK_SIZE);
+    BPM->initialize(48000);
 
+    dotSwitch = new ConstValue(0,AUDIO_BLOCK_SIZE);
+    dotSwitch->initialize(48000);
+
+    NoteVal = new ConstValue(1,AUDIO_BLOCK_SIZE);
+    NoteVal->initialize(48000);
+
+    rhythm = new MusicalTime(AUDIO_BLOCK_SIZE);
+    rhythm->initialize(48000);
+    rhythm->setInputReference(BPM->getOutputChannel(0),0);
+    rhythm->setInputReference(NoteVal->getOutputChannel(0),1);
+    rhythm->setInputReference(dotSwitch->getInputReference(0),2);
+ 
+    lfofreq = new StoF(AUDIO_BLOCK_SIZE);
+    lfofreq->initialize(48000);
+    lfofreq->setInputReference(rhythm->getOutputChannel(0),0);
+    
+    lfo = new Osc(AUDIO_BLOCK_SIZE);
+    lfo->initialize(48000);
+    lfo->setInputReference(lfofreq->getOutputChannel(0),0);
+
+    noise = new NoiseGen(AUDIO_BLOCK_SIZE); 
+    noise->initialize(48000);
+    noise->setInputReference(lfo->getOutputChannel(0),0);
+    
+    
 
 
 

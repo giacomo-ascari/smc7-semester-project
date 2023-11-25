@@ -384,9 +384,23 @@ public:
 // Dotted Off = 0; Dotted On = 1;
 class MusicalTime : public DspBlock {
 public:
-    MusicalTime(int bufferlength);
+    MusicalTime(int bufferlength) : DspBlock(3,1,bufferlength){};
     ~MusicalTime() = default;
     void initialize(float samplerate) override{};
     void handle()override;
+
+}; 
+
+//----- Time in samples to HZ converter--------//
+// This block takes time in samples and outputs the frequency that is related to samples
+//Example: if we want to modulate a block with a specific musical time (quarters) we have to convert
+//the samples that MusicalTime block provides to HZ that oscilator can handle. So, that what this block does.
+
+class StoF : public DspBlock {
+public:
+    StoF(int bufferlength) : DspBlock(1,1,bufferlength){};
+    ~StoF() = default;
+    void initialize(float samplerate) override{};
+    void handle() override;
 
 };

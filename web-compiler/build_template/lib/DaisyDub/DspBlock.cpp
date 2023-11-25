@@ -284,7 +284,7 @@ void NoiseGen::handle()
 
 void MusicalTime::handle() 
 {       
-        float * dotted = 0;
+        
         int fs = 48000;
         float * bpm = getInputReference(0);
         float * notevalue = getInputReference(1);
@@ -306,4 +306,19 @@ void MusicalTime::handle()
         
        
     
+}
+
+void StoF::handle()
+{
+        float * tsamples = getInputReference(0); // Time in samples (input)
+        float  tHz; // time in HZ (output)
+        int fs = 48000;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {
+                tHz = tsamples[sample] / fs;
+                out->writeSample(tHz, sample, 0);
+        }
+        
+
 }
