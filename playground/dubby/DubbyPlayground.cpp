@@ -15,8 +15,17 @@ DspBlock * knob2;
 DspBlock * knob3;
 DspBlock * knob4;
 
-DspBlock * f;
-DspBlock * sine;
+DspBlock * BPM;
+DspBlock * NoteVal;
+DspBlock * dotSwitch;
+DspBlock * noise;
+DspBlock * rhythm;
+DspBlock * lfofreq;
+DspBlock * lfo;
+DspBlock * mul;
+
+
+
 
 
 
@@ -32,19 +41,29 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     knob2->handle();
     knob3->handle();
     knob4->handle();
-    
-    f->handle();
-    sine->handle();
+   
+   BPM->handle();
+   dotSwitch->handle();
+   NoteVal->handle();
+   rhythm->handle();
+   lfofreq->handle();
+   lfo->handle();
+   noise->handle();
   
 
-    float * oscOut = sine->getOutputChannel(0);
+    
+
+    
+  
+
+    float * oscOut = noise->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
         {
             float sample = out[j][i];
             sumSquared[j] += sample * sample;
-            out[j][i] = oscOut[i];
+            out[j][i] = oscOut[i] * 0.25;
         } 
         dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .1f;   
 	}
@@ -71,15 +90,43 @@ int main(void)
     knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
     knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
+    
+   
+    BPM = new ConstValue(60, AUDIO_BLOCK_SIZE);
+    BPM->initialize(48000);
+
+    dotSwitch = new ConstValue(0,AUDIO_BLOCK_SIZE);
+    dotSwitch->initialize(48000);
+
+    NoteVal = new ConstValue(1,AUDIO_BLOCK_SIZE);
+    NoteVal->initialize(48000);
+
+    rhythm = new MusicalTime(AUDIO_BLOCK_SIZE);
+    rhythm->initialize(48000);
+    rhythm->setInputReference(BPM->getOutputChannel(0),0);
+    rhythm->setInputReference(NoteVal->getOutputChannel(0),1);
+    rhythm->setInputReference(dotSwitch->getInputReference(0),2);
+ 
+    lfofreq = new StoF(AUDIO_BLOCK_SIZE);
+    lfofreq->initialize(48000);
+    lfofreq->setInputReference(rhythm->getOutputChannel(0),0);
+    
+    lfo = new Osc(AUDIO_BLOCK_SIZE);
+    lfo->initialize(48000);
+    lfo->setInputReference(lfofreq->getOutputChannel(0),0);
+
+    noise = new NoiseGen(AUDIO_BLOCK_SIZE); 
+    noise->initialize(48000);
+    noise->setInputReference(lfo->getOutputChannel(0),0);
+    
+    
+
+
+
+    
+
 
    
-
-    f = new ConstValue(220, AUDIO_BLOCK_SIZE);
-    f->initialize(48000);
-
-    sine = new Osc(AUDIO_BLOCK_SIZE);
-    sine->initialize(48000);
-    sine->setInputReference(f->getOutputChannel(0), 0);
     
 
     dubby.DrawLogo(); 

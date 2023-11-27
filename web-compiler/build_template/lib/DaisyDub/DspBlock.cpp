@@ -132,6 +132,10 @@ void ConstValue::initialize(float samplerate)
         }
 }
 
+// -----------------------------MATH OPERATIORS ------------------------------------//
+
+//----Multiplier----//
+//Multiplies n diferent channel input values and outputs the result
 void NMultiplier::handle()
 {
         for (int i = 0; i < bufferLength; i++) 
@@ -144,6 +148,56 @@ void NMultiplier::handle()
                 out->writeSample(mul, i, 0);
         }
 }
+
+//-----Summation----//
+//Add n diferent channel input values and outputs the result
+void Sum::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float sum = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        sum += getInputReference(k)[i];
+                }
+                out->writeSample(sum, i, 0);
+        }
+}
+//---Subtraction----/
+//Subtract n diferent channel input values and outputs the result
+void Sub::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float sub = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        sub -= getInputReference(k)[i];
+                }
+                out->writeSample(sub, i, 0);
+        }
+}
+
+//---Division----//
+//Divides n diferent channel input values and outputs the result
+
+void Div::handle()
+{
+        for (int i = 0; i < bufferLength; i++) 
+        {
+                float div = 0;
+                for (int k = 0; k < numInputs; k++)
+                {
+                        div /= getInputReference(k)[i];
+                }
+                out->writeSample(div, i, 0);
+        }
+}
+
+//---------------------------- END OF MATH OPERATORS --------------------------//
+
+
+
 
 void Unipolariser::handle()
 {
@@ -203,19 +257,68 @@ NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspBlock(1, 1, bufferLenth) {};
 
 void NoiseGen::handle() 
 {       
-        // Seed the random number generator with the current time
-    std::srand(static_cast<unsigned int>(std::time(0)));
+
 
         float * amp = getInputReference(0);
         float noiseOut=0;
         
         for(auto sample = 0; sample < bufferLength; sample++)
         {
-                noiseOut = (2.0 * std::rand() / RAND_MAX) - 1.0;
+                float r = (static_cast<float> (std::rand() / static_cast<float> (RAND_MAX / 2))) - 1;
+                
+                noiseOut = r;
                 noiseOut *= amp[sample];
 
         
                 out->writeSample(noiseOut, sample, 0);
         }
     
+}
+
+//--------BPM related time signature to samples converter------//
+// the user insert BPM , Note value , and dotted (if it is preferred)
+// then the block converts the musical time into time in samples depending on BPM
+// Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
+// Dotted Off = 0; Dotted On = 1;
+#include <cmath>
+
+void MusicalTime::handle() 
+{       
+        
+        int fs = 48000;
+        float * bpm = getInputReference(0);
+        float * notevalue = getInputReference(1);
+        float * dotted = getInputReference(2);
+        float delayInsamples;
+    for(int sample = 0; sample < bufferLength; sample++)   
+       {
+        if(dotted[sample] == 1)
+        {
+                dotted[sample] = 0.5;
+        }
+
+        delayInsamples = round ( (60 / bpm[sample]) * fs * (notevalue[sample] + dotted[sample]) );
+
+        out->writeSample(delayInsamples, sample, 0);
+
+       }
+        
+        
+       
+    
+}
+
+void StoF::handle()
+{
+        float * tsamples = getInputReference(0); // Time in samples (input)
+        float  tHz; // time in HZ (output)
+        int fs = 48000;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {
+                tHz = tsamples[sample] / fs;
+                out->writeSample(tHz, sample, 0);
+        }
+        
+
 }
