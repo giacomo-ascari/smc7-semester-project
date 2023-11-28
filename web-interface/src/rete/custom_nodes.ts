@@ -1,82 +1,55 @@
-import { ClassicPreset as Classic, GetSchemes, NodeEditor } from 'rete';
-import { DataflowEngine, DataflowNode } from 'rete-engine';
+import { ClassicPreset } from 'rete';
 
-const socket = new Classic.Socket('socket');
+const socket = new ClassicPreset.Socket('socket');
 
-class OscillatorNode extends Classic.Node implements DataflowNode {
+export class Node extends ClassicPreset.Node {
+  width = 180;
+  height = 120;
+}
+
+export class Connection<N extends Node> extends ClassicPreset.Connection<N, N> {}
+
+export class OscillatorNode extends Node {
   width = 180;
   height = 195;
 
   constructor() {
     super('Oscillator');
 
-    this.addInput('f', new Classic.Input(socket, 'Frequency'));
-    this.addInput('a', new Classic.Input(socket, 'Amplitude'));
-    this.addOutput('value', new Classic.Output(socket, 'Output'));
-    //this.addControl(
-    //  'result',
-    //  new Classic.InputControl('number', { initial: 0, readonly: true })
-    //);
-  }
-  data(inputs: { f?: number[]; a?: number[] }) {
-    const { f = [], a = [] } = inputs;
-    //const sum = (a[0] || 0) + (b[0] || 0);
-    //(this.controls['result'] as Classic.InputControl<'number'>).setValue(sum);
-    let output = 0;
-    return {
-      value: output,
-    };
+    this.addInput('f', new ClassicPreset.Input(socket, 'Frequency'));
+    this.addInput('a', new ClassicPreset.Input(socket, 'Amplitude'));
+    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
   }
 }
 
-class NumberNode extends Classic.Node implements DataflowNode {
+export class NumberNode extends Node {
   width = 180;
   height = 120;
 
-  constructor(initial: number, change?: (value: number) => void) {
+  constructor(initial: number) {
     super('Number');
 
-    this.addOutput('value', new Classic.Output(socket, 'Number'));
-    this.addControl(
-      'value',
-      new Classic.InputControl('number', { initial, change })
-    );
+    let change = (arg: any) => {
+      const value = (this.controls['value'] as ClassicPreset.InputControl<'number'>).value;
+      return { value };
+    }
+    
+    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
+    this.addControl('value', new ClassicPreset.InputControl('number', { initial, change }));
   }
-  data() {
-    const value = (this.controls['value'] as Classic.InputControl<'number'>)
-      .value;
 
-    return {
-      value,
-    };
-  }
+
 }
 
-class AddNode extends Classic.Node implements DataflowNode {
+export class AdderNode extends Node {
   width = 180;
   height = 195;
 
   constructor() {
-    super('Add');
+    super('Adder');
 
-    this.addInput('a', new Classic.Input(socket, 'A'));
-    this.addInput('b', new Classic.Input(socket, 'B'));
-    this.addOutput('value', new Classic.Output(socket, 'Number'));
-    this.addControl(
-      'result',
-      new Classic.InputControl('number', { initial: 0, readonly: true })
-    );
-  }
-  data(inputs: { a?: number[]; b?: number[] }) {
-    const { a = [], b = [] } = inputs;
-    const sum = (a[0] || 0) + (b[0] || 0);
-
-    (this.controls['result'] as Classic.InputControl<'number'>).setValue(sum);
-
-    return {
-      value: sum,
-    };
+    this.addInput('a', new ClassicPreset.Input(socket, 'A'));
+    this.addInput('b', new ClassicPreset.Input(socket, 'B'));
+    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
   }
 }
-
-export { OscillatorNode, NumberNode, AddNode }

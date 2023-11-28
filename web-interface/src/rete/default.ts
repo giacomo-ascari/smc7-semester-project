@@ -9,13 +9,11 @@ import {
 } from 'rete-react-plugin';
 import { createRoot } from 'react-dom/client';
 
-import { DataflowEngine, DataflowNode } from 'rete-engine';
 import {
   AutoArrangePlugin,
   Presets as ArrangePresets,
   ArrangeAppliers
 } from 'rete-auto-arrange-plugin';
-import { ReadonlyPlugin } from 'rete-readonly-plugin';
 import {
   ContextMenuPlugin,
   ContextMenuExtra,
@@ -38,18 +36,11 @@ import {
 } from "rete-history-plugin";
 
 // custom imports
-import {
-  OscillatorNode, AddNode, NumberNode
-} from './custom_nodes';
+import * as Custom from './custom_nodes';
 
-type Node = NumberNode | AddNode;
-type Conn =
-  | Connection<NumberNode, AddNode>
-  | Connection<AddNode, AddNode>
-  | Connection<AddNode, NumberNode>;
-type Schemes = GetSchemes<Node, Conn>;
+type Schemes = GetSchemes<Custom.Node, Custom.Connection<Custom.Node>>;
 
-class Connection<A extends Node, B extends Node> extends Classic.Connection<
+class Connection<A extends Custom.Node, B extends Custom.Node> extends Classic.Connection<
   A,
   B
 > {}
@@ -67,24 +58,27 @@ const socket = new Classic.Socket('socket');
 
 export async function createEditor(container: HTMLElement) {
 
+  // Used plugins
+
   const editor = new NodeEditor<Schemes>();
   const area = new AreaPlugin<Schemes, AreaExtra>(container);
-
   const connection = new ConnectionPlugin<Schemes, AreaExtra>();
-
   const reactRender = new ReactPlugin<Schemes, AreaExtra>({ createRoot });
-
-  const readonly = new ReadonlyPlugin<Schemes>();
-  const contextMenu = new ContextMenuPlugin<Schemes>({
-    items: ContextMenuPresets.classic.setup([
-      ['Number', () => new NumberNode(1, process)],
-      ['Add', () => new AddNode()],
-      ['Oscillator', () => new OscillatorNode()],
-    ]),
-  });
   const minimap = new MinimapPlugin<Schemes>();
   const reroutePlugin = new ReroutePlugin<Schemes>();
   const history = new HistoryPlugin<Schemes>();
+
+  // Context menu plugin (right click menu) configuration
+
+  const contextMenu = new ContextMenuPlugin<Schemes>({
+    items: ContextMenuPresets.classic.setup([
+      ['Number', () => new Custom.NumberNode(1)],
+      ['Add', () => new Custom.AdderNode()],
+      ['Oscillator', () => new Custom.OscillatorNode()],
+    ]),
+  });
+  
+  // Plugin configuration
 
   HistoryExtensions.keyboard(history);
 
@@ -92,9 +86,7 @@ export async function createEditor(container: HTMLElement) {
 
   connection.addPreset(ConnectionPresets.classic.setup());
 
-  //editor.use(readonly.root);
   editor.use(area);
-  //area.use(readonly.area);
   area.use(connection);
   area.use(reactRender);
   area.use(history);
@@ -121,31 +113,31 @@ export async function createEditor(container: HTMLElement) {
     })
   );
 
-  const dataflow = new DataflowEngine<Schemes>();
+  // Default nodes in the editor
 
-  editor.use(dataflow);
+  const a = new Custom.NumberNode(1);
+  const b = new Custom.NumberNode(3);
+  const add = new Custom.AdderNode();
+  const osc = new Custom.OscillatorNode();
 
-  const a = new NumberNode(1, process);
-  const b = new NumberNode(1, process);
-  const add = new AddNode();
-
-  const osc = new OscillatorNode();
   await editor.addNode(osc);
-
   await editor.addNode(a);
   await editor.addNode(b);
   await editor.addNode(add);
 
+  // Default connections in the editor
+
   await editor.addConnection(new Connection(a, 'value', add, 'a'));
   await editor.addConnection(new Connection(b, 'value', add, 'b'));
 
+  // Autoarrange elements in the area
+
   const arrange = new AutoArrangePlugin<Schemes>();
-
   arrange.addPreset(ArrangePresets.classic.setup());
-
   area.use(arrange);
-
   await arrange.layout();
+
+  // Misc (don't know exactly what it does)
 
   AreaExtensions.zoomAt(area, editor.getNodes());
 
@@ -156,38 +148,6 @@ export async function createEditor(container: HTMLElement) {
 
   AreaExtensions.selectableNodes(area, selector, { accumulating });
   RerouteExtensions.selectablePins(reroutePlugin, selector, accumulating);
-
-  async function process() {
-    dataflow.reset();
-
-    editor
-      .getNodes()
-      .filter((node) => node instanceof AddNode)
-      .forEach(async (node) => {
-        const sum = await dataflow.fetch(node.id);
-
-        console.log(node.id, 'produces', sum);
-
-        area.update(
-          'control',
-          (node.controls['result'] as Classic.InputControl<'number'>).id
-        );
-      });
-  }
-
-  editor.addPipe((context) => {
-    if (
-      context.type === 'connectioncreated' ||
-      context.type === 'connectionremoved'
-    ) {
-      process();
-    }
-    return context;
-  });
-
-  process();
-
-  readonly.enable();
 
   return {
     destroy: () => area.destroy(),
