@@ -72,8 +72,10 @@ export async function createEditor(container: HTMLElement) {
 
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
-      ['Number', () => new Custom.NumberNode(1)],
       ['Add', () => new Custom.AdderNode()],
+      ['Dubby knob 1', () => new Custom.DubbyKnob1Node()],
+      ['Dubby output 1', () => new Custom.DubbyOutput1Node()],
+      ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
     ]),
   });
@@ -115,8 +117,8 @@ export async function createEditor(container: HTMLElement) {
 
   // Default nodes in the editor
 
-  const a = new Custom.NumberNode(1);
-  const b = new Custom.NumberNode(3);
+  const a = new Custom.NumberNode();
+  const b = new Custom.NumberNode();
   const add = new Custom.AdderNode();
   const osc = new Custom.OscillatorNode();
 
