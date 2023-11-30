@@ -73,8 +73,8 @@ export async function createEditor(container: HTMLElement) {
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
       ['Add', () => new Custom.AdderNode()],
-      ['Dubby knob 1', () => new Custom.DubbyKnob1Node()],
-      ['Dubby output 1', () => new Custom.DubbyOutput1Node()],
+      ['Dubby knobs in', () => new Custom.DubbyKnobInputsNode()],
+      ['Dubby audio out', () => new Custom.DubbyAudioOutputsNode()],
       ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
     ]),
@@ -153,5 +153,10 @@ export async function createEditor(container: HTMLElement) {
 
   return {
     destroy: () => area.destroy(),
+    test: () => {},
+    layout: async () => {
+      await arrange.layout();
+      AreaExtensions.zoomAt(area, editor.getNodes());
+    }
   };
 }

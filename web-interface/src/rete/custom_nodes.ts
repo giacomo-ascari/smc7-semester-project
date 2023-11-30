@@ -25,23 +25,29 @@ export class AdderNode extends Node {
   }
 }
 
-// dubby knob 1 node
-export class DubbyKnob1Node extends Node {
+// dubby knobs INPUT node
+export class DubbyKnobInputsNode extends Node {
   width = 180;
-  height = 90;
+  height = 200;
   constructor() {
-    super('Dubby knob 1');
-    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
+    super('Dubby knob ins');
+    this.addOutput('k1', new ClassicPreset.Output(socket, 'Knob 1'));
+    this.addOutput('k2', new ClassicPreset.Output(socket, 'Knob 2'));
+    this.addOutput('k3', new ClassicPreset.Output(socket, 'Knob 3'));
+    this.addOutput('k4', new ClassicPreset.Output(socket, 'Knob 4'));
   }
 }
 
-// dubby output 1 node
-export class DubbyOutput1Node extends Node {
+// dubby audio OUTPUT node
+export class DubbyAudioOutputsNode extends Node {
   width = 180;
-  height = 90;
+  height = 200;
   constructor() {
-    super('Dubby output 1');
-    this.addInput('value', new ClassicPreset.Input(socket, 'Input'));
+    super('Dubby audio outs');
+    this.addInput('l1', new ClassicPreset.Input(socket, 'Left 1'));
+    this.addInput('r1', new ClassicPreset.Input(socket, 'Right 1'));
+    this.addInput('l2', new ClassicPreset.Input(socket, 'Left 2'));
+    this.addInput('r2', new ClassicPreset.Input(socket, 'Right 2'));
   }
 }
 
@@ -69,7 +75,7 @@ export class NumberNode extends Node {
 // oscialttor, with 2 inputs and 1 output
 export class OscillatorNode extends Node {
   width = 180;
-  height = 195;
+  height = 180;
 
   constructor() {
     super('Oscillator');
