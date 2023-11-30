@@ -1,6 +1,5 @@
 #include "DspBlock.h"
 
-
 void Clock::initialize(float samplerate)
 {
         this->samplerate = samplerate;
@@ -9,7 +8,7 @@ void Clock::initialize(float samplerate)
 void Clock::handle()
 {
         float freqHz = getInputReference(0)[0];
-        if (freqHz == 0 )
+        if (freqHz == 0)
         {
                 // Avoid 0-division later
                 freqHz = 0.0000001;
@@ -23,7 +22,8 @@ void Clock::handle()
                 {
                         out->writeSample(1.f, i, 0);
                         samplesSinceTick = 0;
-                } else
+                }
+                else
                 {
                         out->writeSample(0, i, 0);
                         samplesSinceTick++;
@@ -33,10 +33,10 @@ void Clock::handle()
         samplesSinceTick = samplesSinceTick % periodSamples;
 }
 
-Osc::Osc(int bufferLenth) : Osc::DspBlock(1, 1, bufferLenth) {};
+Osc::Osc(int bufferLenth) : Osc::DspBlock(1, 1, bufferLenth){};
 
 // Initializes the DaisySp::Oscillator with some default values
-void Osc::initialize(float samplerate) 
+void Osc::initialize(float samplerate)
 {
         osc.Init(samplerate);
         osc.SetWaveform(osc.WAVE_SIN);
@@ -44,22 +44,21 @@ void Osc::initialize(float samplerate)
         osc.SetFreq(800);
 }
 
-void Osc::handle() 
+void Osc::handle()
 {
         // Read the input frequency buffer
-        float * freqIn = getInputReference(0);
+        float *freqIn = getInputReference(0);
         // Set the frequency once per buffer (with small buffer lengths it should be sufficient for now)
         // Important note: Here we assume, that the value of freqIn[0] is provided in Hz. But that will not work generically. For example imagine we pluck the output of an osc into the freq input of this osc
         // in that case freqIn[0] would be some value between -1 and 1, which does not make sense in terms of Hz. We need to figure out how to make this better.
         osc.SetFreq(freqIn[0]);
-        for(auto i = 0; i < bufferLength; i++)
+        for (auto i = 0; i < bufferLength; i++)
         {
                 float osc_out = osc.Process();
                 // Apply the amp input
-                //Set the left and right outputs
+                // Set the left and right outputs
                 out->writeSample(osc_out, i, 0);
         }
-    
 }
 
 void ADSREnv::initialize(float samplerate)
@@ -68,8 +67,8 @@ void ADSREnv::initialize(float samplerate)
 }
 
 void ADSREnv::handle()
-{       
-        float * trigger = getInputReference(0);
+{
+        float *trigger = getInputReference(0);
         float attack = abs(getInputReference(1)[0]);
         float decay = abs(getInputReference(2)[0]);
         float sustain = abs(getInputReference(3)[0]);
@@ -80,9 +79,9 @@ void ADSREnv::handle()
         env.SetSustainLevel(sustain);
         env.SetReleaseTime(release);
 
-        for(int i = 0; i < bufferLength; i++)
+        for (int i = 0; i < bufferLength; i++)
         {
-                if( trigger[i] == 1)
+                if (trigger[i] == 1)
                 {
                         env.Retrigger(false);
                 }
@@ -100,33 +99,32 @@ void FeedbackDelay::initialize(float samplerate)
 
 void FeedbackDelay::handle()
 {
-        float * audioIn = getInputReference(0);
-        float * ampDelay = getInputReference(1);
+        float *audioIn = getInputReference(0);
+        float *ampDelay = getInputReference(1);
 
-        for(int i = 0; i < bufferLength; i++)
-        {       
+        for (int i = 0; i < bufferLength; i++)
+        {
                 int readFrom = (circBufPos + i) % delayLengthSamples;
                 float output = (1 - ampDelay[i]) * audioIn[i] + ampDelay[i] * circBuf[readFrom];
                 out->writeSample(output, i, 0);
                 circBuf[readFrom] = output;
         }
         circBufPos = (circBufPos + bufferLength) % delayLengthSamples;
-
 }
 
 void KnobMap::handle()
 {
         float val = dubby.GetKnobValue(knob);
-        for(int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 out->writeSample(val, i, 0);
         }
 }
 
 // Fills the ConstValue's buffer with a value
-void ConstValue::initialize(float samplerate) 
+void ConstValue::initialize(float samplerate)
 {
-        for(int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 out->writeSample(val, i, 0);
         }
@@ -135,10 +133,10 @@ void ConstValue::initialize(float samplerate)
 // -----------------------------MATH OPERATIORS ------------------------------------//
 
 //----Multiplier----//
-//Multiplies n diferent channel input values and outputs the result
+// Multiplies n diferent channel input values and outputs the result
 void NMultiplier::handle()
 {
-        for (int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 float mul = 1;
                 for (int k = 0; k < numInputs; k++)
@@ -150,10 +148,10 @@ void NMultiplier::handle()
 }
 
 //-----Summation----//
-//Add n diferent channel input values and outputs the result
+// Add n diferent channel input values and outputs the result
 void Sum::handle()
 {
-        for (int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 float sum = 0;
                 for (int k = 0; k < numInputs; k++)
@@ -164,10 +162,10 @@ void Sum::handle()
         }
 }
 //---Subtraction----/
-//Subtract n diferent channel input values and outputs the result
+// Subtract n diferent channel input values and outputs the result
 void Sub::handle()
 {
-        for (int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 float sub = 0;
                 for (int k = 0; k < numInputs; k++)
@@ -179,11 +177,11 @@ void Sub::handle()
 }
 
 //---Division----//
-//Divides n diferent channel input values and outputs the result
+// Divides n diferent channel input values and outputs the result
 
 void Div::handle()
 {
-        for (int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 float div = 0;
                 for (int k = 0; k < numInputs; k++)
@@ -196,56 +194,51 @@ void Div::handle()
 
 //---------------------------- END OF MATH OPERATORS --------------------------//
 
-
-
-
 void Unipolariser::handle()
 {
-        float * in = getInputReference(0); 
+        float *in = getInputReference(0);
 
-        for (int i = 0; i < bufferLength; i++) 
+        for (int i = 0; i < bufferLength; i++)
         {
                 out->writeSample(abs(in[i]), i, 0);
         }
 }
 
-                //--------Volume Controller----------//
+//--------Volume Controller----------//
 
 void VolumeControl::handle()
 {
-        float * amp = getInputReference(0);
+        float *amp = getInputReference(0);
         float in = 0;
 
         for (int sample = 0; sample < bufferLength; sample++)
         {
-             in = getInputReference(1)[sample];
-             in *= amp[sample];
-             
-             out->writeSample(in,sample,0);   
-        }
+                in = getInputReference(1)[sample];
+                in *= amp[sample];
 
+                out->writeSample(in, sample, 0);
+        }
 }
 
-                //--------Mixer----------//
+//--------Mixer----------//
 
 void Mix::handle()
 {
         float in = 0;
         for (int sample = 0; sample < bufferLength; sample++)
-        {       
+        {
 
                 for (int chIn = 0; chIn < numInputs; chIn++)
                 {
-                in += getInputReference(chIn)[sample];
+                        in += getInputReference(chIn)[sample];
                 }
 
                 in /= numInputs;
-                
-                for(int ch = 0; ch < numOutputs; ch++)
-                {       
-                        out->writeSample(in,sample,ch);
+
+                for (int ch = 0; ch < numOutputs; ch++)
+                {
+                        out->writeSample(in, sample, ch);
                 }
-        
         }
 }
 
@@ -253,26 +246,23 @@ void Mix::handle()
 #include <cstdlib>
 #include <ctime>
 
-NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspBlock(1, 1, bufferLenth) {};
+NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspBlock(1, 1, bufferLenth){};
 
-void NoiseGen::handle() 
-{       
+void NoiseGen::handle()
+{
 
+        float *amp = getInputReference(0);
+        float noiseOut = 0;
 
-        float * amp = getInputReference(0);
-        float noiseOut=0;
-        
-        for(auto sample = 0; sample < bufferLength; sample++)
+        for (auto sample = 0; sample < bufferLength; sample++)
         {
-                float r = (static_cast<float> (std::rand() / static_cast<float> (RAND_MAX / 2))) - 1;
-                
+                float r = (static_cast<float>(std::rand() / static_cast<float>(RAND_MAX / 2))) - 1;
+
                 noiseOut = r;
                 noiseOut *= amp[sample];
 
-        
                 out->writeSample(noiseOut, sample, 0);
         }
-    
 }
 
 //--------BPM related time signature to samples converter------//
@@ -282,43 +272,44 @@ void NoiseGen::handle()
 // Dotted Off = 0; Dotted On = 1;
 #include <cmath>
 
-void MusicalTime::handle() 
-{       
-        
+void MusicalTime::handle()
+{
+
         int fs = 48000;
-        float * bpm = getInputReference(0);
-        float * notevalue = getInputReference(1);
-        float * dotted = getInputReference(2);
+        float *bpm = getInputReference(0);
+        float *notevalue = getInputReference(1);
+        float *dotted = getInputReference(2);
         float delayInsamples;
-    for(int sample = 0; sample < bufferLength; sample++)   
-       {
-        if(dotted[sample] == 1)
+        for (int sample = 0; sample < bufferLength; sample++)
         {
-                dotted[sample] = 0.5;
+                
+                if (dotted[sample] == 1)
+                {
+                        dotted[sample] = 0.5 * notevalue[sample];
+                }
+                else if (dotted[sample] == 0)
+                       { dotted[sample] = 0; }
+
+                if (bpm[sample] > 0)
+                {
+                        bpm[sample] = bpm[sample];
+                }
+
+                delayInsamples = round((60 / bpm[sample]) * fs * (notevalue[sample] + dotted[sample]));
+
+                out->writeSample(delayInsamples, sample, 0);
         }
-
-        delayInsamples = round ( (60 / bpm[sample]) * fs * (notevalue[sample] + dotted[sample]) );
-
-        out->writeSample(delayInsamples, sample, 0);
-
-       }
-        
-        
-       
-    
 }
 
 void StoF::handle()
 {
-        float * tsamples = getInputReference(0); // Time in samples (input)
-        float  tHz; // time in HZ (output)
+        float *tsamples = getInputReference(0); // Time in samples (input)
+        float tHz;                              // time in HZ (output)
         int fs = 48000;
 
         for (int sample = 0; sample < bufferLength; sample++)
-        {
-                tHz = tsamples[sample] / fs;
+        { 
+                tHz = (fs / tsamples[sample]) / 2 ;
                 out->writeSample(tHz, sample, 0);
         }
-        
-
 }

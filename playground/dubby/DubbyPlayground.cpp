@@ -22,7 +22,6 @@ DspBlock * noise;
 DspBlock * rhythm;
 DspBlock * lfofreq;
 DspBlock * lfo;
-DspBlock * mul;
 
 
 
@@ -92,31 +91,29 @@ int main(void)
 
     
    
-    BPM = new ConstValue(60, AUDIO_BLOCK_SIZE);
+    BPM = new ConstValue(120, AUDIO_BLOCK_SIZE);
     BPM->initialize(48000);
 
-    dotSwitch = new ConstValue(0,AUDIO_BLOCK_SIZE);
+    dotSwitch = new ConstValue(1,AUDIO_BLOCK_SIZE);
     dotSwitch->initialize(48000);
 
-    NoteVal = new ConstValue(1,AUDIO_BLOCK_SIZE);
+    NoteVal = new ConstValue(0.5,AUDIO_BLOCK_SIZE);
     NoteVal->initialize(48000);
 
     rhythm = new MusicalTime(AUDIO_BLOCK_SIZE);
-    rhythm->initialize(48000);
     rhythm->setInputReference(BPM->getOutputChannel(0),0);
     rhythm->setInputReference(NoteVal->getOutputChannel(0),1);
-    rhythm->setInputReference(dotSwitch->getInputReference(0),2);
+    rhythm->setInputReference(dotSwitch->getOutputChannel(0),2);
  
     lfofreq = new StoF(AUDIO_BLOCK_SIZE);
-    lfofreq->initialize(48000);
     lfofreq->setInputReference(rhythm->getOutputChannel(0),0);
+
     
     lfo = new Osc(AUDIO_BLOCK_SIZE);
     lfo->initialize(48000);
     lfo->setInputReference(lfofreq->getOutputChannel(0),0);
 
     noise = new NoiseGen(AUDIO_BLOCK_SIZE); 
-    noise->initialize(48000);
     noise->setInputReference(lfo->getOutputChannel(0),0);
     
     
