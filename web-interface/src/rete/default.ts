@@ -73,8 +73,10 @@ export async function createEditor(container: HTMLElement) {
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
       ['Add', () => new Custom.AdderNode()],
-      ['Dubby knobs in', () => new Custom.DubbyKnobInputsNode()],
-      ['Dubby audio out', () => new Custom.DubbyAudioOutputsNode()],
+      ["Dubby interfaces", [
+        ['Dubby knobs IN', () => new Custom.DubbyKnobInputsNode()],
+        ['Dubby audio OUT', () => new Custom.DubbyAudioOutputsNode()],
+      ]],
       ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
     ]),
@@ -153,7 +155,46 @@ export async function createEditor(container: HTMLElement) {
 
   return {
     destroy: () => area.destroy(),
-    test: () => {},
+    getFlow: () => {
+      let blocks: any = [];
+
+      console.log( editor.getConnections())
+
+      // building the nodes
+      // excluding connections
+      editor.getNodes().forEach(n => {
+        console.log(n);
+        let block: any = {
+          type: n.type,
+          id: n.id,
+          constructorParams: [],
+          input: {},
+          output: {}
+        };
+        if (n.controls) {
+          Object.keys(n.controls).forEach(e => {
+            block.constructorParams.push({[e]: (n.controls[e] as any).value})
+          });
+        };
+        blocks.push(block)
+      })
+
+      // building the connections
+      // time to make montresor proud
+      editor.getConnections().forEach(c => {
+        console.log(c);
+        blocks.forEach((b: any) => {
+          if (c.source == b.id) {
+            b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
+          }
+          if (c.target == b.id) {
+            b.inputs = {...b.inputs, [c.targetInput]: {source: c.source, sourceOutput: c.sourceOutput}};
+          }
+        });
+      })
+
+      return blocks;
+    },
     layout: async () => {
       await arrange.layout();
       AreaExtensions.zoomAt(area, editor.getNodes());

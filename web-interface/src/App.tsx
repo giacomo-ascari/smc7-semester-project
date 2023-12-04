@@ -17,16 +17,15 @@ const Actions = styled.div`
 `;
 
 function App() {
-  const [ref, editor] = useRete(createEditor)
-  console.log(ref)
-  console.log(editor)
+  const [ref, editor] = useRete(createEditor) as any; // i know it's janky but let's roll
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Dubby web programmer</h1>
         <Actions>
-          <Button onClick={() => { /*invoke editor functions*/ }  }>Layout</Button>
+          <Button onClick={() => { if (editor?.layout) editor.layout(); }  }>Layout</Button>
+          <Button onClick={() => { if (editor?.getFlow) console.log(editor.getFlow()); }  }>Test</Button>
         </Actions>
         {/*<img src={logo} className="App-logo" alt="logo" style={{ animation: 'none' }} width="0.5"/>
         <a
