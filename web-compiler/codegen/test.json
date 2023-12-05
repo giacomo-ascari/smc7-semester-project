@@ -1,70 +1,39 @@
 {
     "blocks": [
         {
-            "type":"ConstValue",
-            "id":"const0",
+            "type": "oscillator",
+            "id": "9b133f86b7cb36f0",
+            "constructorParams": [],
+            "inputs": {}
+        },
+        {
+            "type": "const",
+            "id": "0f7e668700029dd5",
             "constructorParams": [
-                "400"
+                    "1"
             ],
             "inputs": {}
         },
         {
-            "type":"ConstValue",
-            "id":"const1",
+            "type": "const",
+            "id": "3015bc1d1e622637",
             "constructorParams": [
                 "10"
             ],
             "inputs": {}
         },
         {
-            "type":"PhysicalOut",
-            "id":"physOut0",
-            "constructorParams": [
-                "0"
-            ],
-            "inputs": {
-                "0": {
-                    "fromId":"multi0",
-                    "fromChannel": 0
-                }
-            }
-        },
-        {
-            "type":"Osc",
-            "id":"osc0",
+            "type": "adder",
+            "id": "8f9945f757ff2517",
             "constructorParams": [],
             "inputs": {
                 "0": {
-                    "fromId":"const0",
-                    "fromChannel": 0
-                }
-            }
-        },
-        {
-            "type":"Osc",
-            "id":"osc1",
-            "constructorParams": [],
-            "inputs": {
-                "0": {
-                    "fromId":"const1",
-                    "fromChannel": 0
-                }
-            }
-        },
-        {
-            "type":"NMultiplier",
-            "id":"multi0",
-            "constructorParams": [
-                "2"
-            ],
-            "inputs": {
-                "0": {
-                    "fromId":"osc0",
-                    "fromChannel": 0
+                    "fromId": "0f7e668700029dd5",
+                    "fromChannel": "0"
                 },
                 "1": {
-                    "fromId":"osc1",
-                    "fromChannel": 0
+                    "fromId": "3015bc1d1e622637",
+                    "fromChannel": "val0ue"
                 }
             }
         }

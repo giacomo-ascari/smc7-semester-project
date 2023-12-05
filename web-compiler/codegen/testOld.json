@@ -1,0 +1,72 @@
+{
+    "blocks": [
+        {
+            "type":"ConstValue",
+            "id":"const0",
+            "constructorParams": [
+                "400"
+            ],
+            "inputs": {}
+        },
+        {
+            "type":"ConstValue",
+            "id":"const1",
+            "constructorParams": [
+                "10"
+            ],
+            "inputs": {}
+        },
+        {
+            "type":"PhysicalOut",
+            "id":"physOut0",
+            "constructorParams": [
+                "0"
+            ],
+            "inputs": {
+                "0": {
+                    "fromId":"multi0",
+                    "fromChannel": 0
+                }
+            }
+        },
+        {
+            "type":"Osc",
+            "id":"osc0",
+            "constructorParams": [],
+            "inputs": {
+                "0": {
+                    "fromId":"const0",
+                    "fromChannel": 0
+                }
+            }
+        },
+        {
+            "type":"Osc",
+            "id":"osc1",
+            "constructorParams": [],
+            "inputs": {
+                "0": {
+                    "fromId":"const1",
+                    "fromChannel": 0
+                }
+            }
+        },
+        {
+            "type":"NMultiplier",
+            "id":"multi0",
+            "constructorParams": [
+                "2"
+            ],
+            "inputs": {
+                "0": {
+                    "fromId":"osc0",
+                    "fromChannel": 0
+                },
+                "1": {
+                    "fromId":"osc1",
+                    "fromChannel": 0
+                }
+            }
+        }
+    ]
+}

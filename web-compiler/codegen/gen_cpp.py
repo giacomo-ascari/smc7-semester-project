@@ -1,12 +1,18 @@
 import json
 import sys
 
+"""
+Returns the variable with a prefix
+"""
+def getPrefixedVarname(varName: str) -> str:
+    return f"block_{varName}"
+
 """ 
 Converts a string x to a DspBlock declaration. The corresponding output is
 DspBlock * x;
 """
 def genBlockDeclaration(varName: str) -> str:
-    return f"DspBlock * {varName};"
+    return f"DspBlock * {getPrefixedVarname(varName)};"
 
 """ 
 Creates an instantiation statement in the form of varName = new childClass(constrParamList..., AUDIO_BLOCK_SIZE);
@@ -18,7 +24,7 @@ constrParamList - optional and additional constructor parameters
 """
 def getInstantiation(varName: str, childClass: str, constrParamList) -> str:
     constrParamList.append('AUDIO_BLOCK_SIZE')
-    return f"{varName} = new {childClass}({', '.join(constrParamList)});"
+    return f"{getPrefixedVarname(varName)} = new {childClass}({', '.join(constrParamList)});"
 
 """ 
 Optionally creates function-call to the initialize function of a given variable extending from DspBlock in the form of:
@@ -29,7 +35,7 @@ needsInit - returns the statement if true, an empty string otherwise
 
 """
 def genInit(varName: str, needsInit: bool) -> str:
-    return f"{varName}->initialize(samplerate);" if needsInit else ""
+    return f"{getPrefixedVarname(varName)}->initialize(samplerate);" if needsInit else ""
 
 """ 
 Returns a list of one function invocation per input. Each statement has the form of:
@@ -45,8 +51,8 @@ inputs - a map of input definitions
 def genRouting(varName: str, inputs):
     methodCalls = []
     for inCh in inputs:
-        outCh = f"{inputs[inCh]['fromId']}->getOutputChannel({inputs[inCh]['fromChannel']})"
-        t = f"{varName}->setInputReference({outCh},{inCh});"
+        outCh = f"{getPrefixedVarname(inputs[inCh]['fromId'])}->getOutputChannel({inputs[inCh]['fromChannel']})"
+        t = f"{getPrefixedVarname(varName)}->setInputReference({outCh},{inCh});"
         methodCalls.append(t)
     return methodCalls
 
@@ -56,7 +62,7 @@ Form: varName->handle();
 
 """
 def genHandleCall(varName: str) -> str:
-    return f"{varName}->handle();"
+    return f"{getPrefixedVarname(varName)}->handle();"
 
 """ 
 Return a list of handle() method invocations for all DspBlocks.
