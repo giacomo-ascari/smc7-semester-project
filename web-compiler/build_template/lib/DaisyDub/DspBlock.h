@@ -314,6 +314,26 @@ private:
     int numInputs;
 };
 
+
+class Scaler : public DspBlock {
+public:
+Scaler(float inMin, float inMax, float outMin, float outMax, int bufferLength) : DspBlock(1, 1, bufferLength)
+{
+this->inMin = inMin;
+this->inMax = inMax;
+this->outMin = outMin;
+this->outMax = outMax;
+};
+~Scaler() = default;
+void initialize(float samplerate) override{};
+void handle() override;
+
+private:
+float inMin, inMax, outMin, outMax;
+
+
+};
+
 //-----------------------------END OF MATH OPERATORS------------------------------//
 
 
@@ -403,4 +423,20 @@ public:
     void initialize(float samplerate) override{};
     void handle() override;
 
+};
+
+//----Filter--------
+
+//bandPass
+
+class BPF : public DspBlock {
+public:
+    BPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~BPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
 };
