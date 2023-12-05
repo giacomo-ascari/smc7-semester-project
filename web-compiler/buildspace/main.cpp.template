@@ -1,6 +1,8 @@
 #include "daisysp.h"
-#include "../../web-compiler/build_template/lib/DaisyDub/Dubby.h"
-#include "../../web-compiler/build_template/lib/DaisyDub/DspBlock.h"
+#include "lib/DaisyDub/Dubby.h"
+#include "lib/DaisyDub/DspBlock.h"
+
+#define samplerate 44100
 
 using namespace daisy;
 using namespace daisysp;

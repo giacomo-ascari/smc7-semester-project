@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 
 """
 Returns the variable with a prefix
@@ -89,29 +90,35 @@ def genOrderedHandleCalls(blocks):
                 handledBlocks.append(block)
                 blocks.remove(block)
         if errorState:
-            sys.exit('Cycle in input routing')
+            raise Exception("Cycle in routing detected")
 
     return [genHandleCall(x['id']) for x in handledBlocks]
 
+def genCpp(jsonData, requestId):
+    # file = open('test.json')
 
-file = open('test.json')
+    blocks = jsonData['blocks']
+    try:
+        blockDeclarations = [genBlockDeclaration(x['id']) for x in blocks]
+        blockInstanciation = [getInstantiation(x['id'], x['type'], x['constructorParams']) for x in blocks]
+        blockInitializations =[genInit(x['id'], True) for x in blocks]
+        blockRoutings = [genRouting(x['id'], x['inputs']) for x in blocks]
+        flatRoutings = [item for sublist in blockRoutings for item in sublist]
+        orderedHandleCalls = genOrderedHandleCalls(blocks)
+    except Exception as e:
+        return False
+    current_directory = os.getcwd()
+    final_directory = os.path.join(current_directory, 'buildspace', rf'{str(requestId)}')
+    if not os.path.exists(final_directory):
+        os.makedirs(final_directory)
 
-blocks = json.load(file)['blocks']
-
-blockDeclarations = [genBlockDeclaration(x['id']) for x in blocks]
-blockInstanciation = [getInstantiation(x['id'], x['type'], x['constructorParams']) for x in blocks]
-blockInitializations =[genInit(x['id'], True) for x in blocks]
-blockRoutings = [genRouting(x['id'], x['inputs']) for x in blocks]
-flatRoutings = [item for sublist in blockRoutings for item in sublist]
-orderedHandleCalls = genOrderedHandleCalls(blocks)
-
-with open("main.cpp.template", 'r') as templatefile:
-    template = templatefile.read()
-with open(f"main2.cpp", 'w+') as writefile:
-    template = template.replace('%declarations%', '\n'.join(blockDeclarations))
-    template = template.replace('%handle_invocations%', '\n'.join(orderedHandleCalls))
-    template = template.replace('%instanciation%', '\n'.join(blockInstanciation))
-    template = template.replace('%initialization%', '\n'.join(blockInitializations))
-    template = template.replace('%routing%', '\n'.join(flatRoutings))
-    writefile.write(template)
-
+    with open("buildspace/main.cpp.template", 'r') as templatefile:
+        template = templatefile.read()
+    with open(f"{final_directory}/Main.cpp", 'w+') as writefile:
+        template = template.replace('%declarations%', '\n'.join(blockDeclarations))
+        template = template.replace('%handle_invocations%', '\n'.join(orderedHandleCalls))
+        template = template.replace('%instanciation%', '\n'.join(blockInstanciation))
+        template = template.replace('%initialization%', '\n'.join(blockInitializations))
+        template = template.replace('%routing%', '\n'.join(flatRoutings))
+        writefile.write(template)
+    return True
