@@ -370,3 +370,42 @@ void BPF::handle()
 
         }
 }
+
+
+//-----LPF----
+
+void LPF::handle()
+{       
+        float * in = getInputReference(0);
+        float * Q = getInputReference(2); 
+        float * Fc = getInputReference(1);
+        float k;
+        float norm;
+        float b_0, b_1, b_2, a_1, a_2;
+        float fltOut;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {       
+                cirBuffin[sample%4] = in[sample];
+                cirBuffout[sample%4] = fltOut;
+
+                k = tanf(M_PI * Fc[sample] / 48000);
+                norm = 1 / (1 + k / Q[sample] + k * k);
+                b_0 = k * k * norm;
+                b_1 = 2 * b_0;
+                b_2 = b_0;
+                
+                a_1 = 2 * (k * k - 1) * norm;
+                a_2 = (1 - k / Q[sample] + k * k) * norm;
+                
+                float n_1 = cirBuffin[(4+sample-1)%4];
+                float n_2 = cirBuffin[(4+sample-2)%4];
+                float yn_1 = cirBuffout[4 + sample - 1 % 4];
+                float yn_2 = cirBuffout[4 + sample - 2 % 4];
+
+                fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 + yn_2 * a_2;
+
+                out->writeSample(fltOut, sample , 0);
+
+        }
+}

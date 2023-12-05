@@ -425,7 +425,7 @@ public:
 
 };
 
-//----Filter--------
+//----Filters--------
 
 //bandPass
 
@@ -433,6 +433,20 @@ class BPF : public DspBlock {
 public:
     BPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
     ~BPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
+};
+
+//------Low Pass Filter----
+
+class LPF : public DspBlock {
+public:
+    LPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~LPF() = default;
     void initialize(float samplerate) override{}; 
     void handle() override;    
 
