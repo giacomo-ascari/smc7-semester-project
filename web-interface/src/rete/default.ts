@@ -73,7 +73,7 @@ export async function createEditor(container: HTMLElement) {
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
       ['Add', () => new Custom.AdderNode()],
-      ["Dubby interfaces", [
+      ["Dubby", [
         ['Dubby knobs IN', () => new Custom.DubbyKnobInputsNode()],
         ['Dubby audio OUT', () => new Custom.DubbyAudioOutputsNode()],
       ]],
@@ -119,10 +119,15 @@ export async function createEditor(container: HTMLElement) {
 
   // Default nodes in the editor
 
+  console.log("made it here 1")
+
   const a = new Custom.NumberNode();
   const b = new Custom.NumberNode();
   const add = new Custom.AdderNode();
   const osc = new Custom.OscillatorNode();
+
+  console.log("made it here 2")
+
 
   await editor.addNode(osc);
   await editor.addNode(a);
@@ -131,8 +136,8 @@ export async function createEditor(container: HTMLElement) {
 
   // Default connections in the editor
 
-  await editor.addConnection(new Connection(a, 'value', add, 'a'));
-  await editor.addConnection(new Connection(b, 'value', add, 'b'));
+  await editor.addConnection(new Connection(a, '0', add, '0'));
+  await editor.addConnection(new Connection(b, '0', add, '1'));
 
   // Autoarrange elements in the area
 
@@ -158,22 +163,19 @@ export async function createEditor(container: HTMLElement) {
     getFlow: () => {
       let blocks: any = [];
 
-      console.log( editor.getConnections())
-
       // building the nodes
       // excluding connections
       editor.getNodes().forEach(n => {
-        console.log(n);
         let block: any = {
           type: n.type,
           id: n.id,
-          constructorParams: [],
-          input: {},
-          output: {}
+          constructorParams: {},
+          inputs: {},
+          //outputs: {}
         };
         if (n.controls) {
           Object.keys(n.controls).forEach(e => {
-            block.constructorParams.push({[e]: (n.controls[e] as any).value})
+            block.constructorParams = {...block.constructorParams, [e]: (n.controls[e] as any).value};
           });
         };
         blocks.push(block)
@@ -182,11 +184,10 @@ export async function createEditor(container: HTMLElement) {
       // building the connections
       // time to make montresor proud
       editor.getConnections().forEach(c => {
-        console.log(c);
         blocks.forEach((b: any) => {
-          if (c.source == b.id) {
-            b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
-          }
+          //if (c.source == b.id) {
+          //  b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
+          //}
           if (c.target == b.id) {
             b.inputs = {...b.inputs, [c.targetInput]: {source: c.source, sourceOutput: c.sourceOutput}};
           }

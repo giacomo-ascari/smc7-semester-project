@@ -19,9 +19,9 @@ export class AdderNode extends Node {
   type = "adder";
   constructor() {
     super('Adder');
-    this.addInput('a', new ClassicPreset.Input(socket, 'A'));
-    this.addInput('b', new ClassicPreset.Input(socket, 'B'));
-    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
+    this.addInput('0', new ClassicPreset.Input(socket, 'A'));
+    this.addInput('1', new ClassicPreset.Input(socket, 'B'));
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Output'));
   }
 }
 
@@ -31,11 +31,11 @@ export class DubbyKnobInputsNode extends Node {
   height = 200;
   type = "dubbyknobs";
   constructor() {
-    super('Dubby knob ins');
-    this.addOutput('k1', new ClassicPreset.Output(socket, 'Knob 1'));
-    this.addOutput('k2', new ClassicPreset.Output(socket, 'Knob 2'));
-    this.addOutput('k3', new ClassicPreset.Output(socket, 'Knob 3'));
-    this.addOutput('k4', new ClassicPreset.Output(socket, 'Knob 4'));
+    super('Dubby knob INs');
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Knob 1'));
+    this.addOutput('1', new ClassicPreset.Output(socket, 'Knob 2'));
+    this.addOutput('2', new ClassicPreset.Output(socket, 'Knob 3'));
+    this.addOutput('3', new ClassicPreset.Output(socket, 'Knob 4'));
   }
 }
 
@@ -45,11 +45,11 @@ export class DubbyAudioOutputsNode extends Node {
   height = 200;
   type = "dubbyaudioout";
   constructor() {
-    super('Dubby audio outs');
-    this.addInput('l1', new ClassicPreset.Input(socket, 'Left 1'));
-    this.addInput('r1', new ClassicPreset.Input(socket, 'Right 1'));
-    this.addInput('l2', new ClassicPreset.Input(socket, 'Left 2'));
-    this.addInput('r2', new ClassicPreset.Input(socket, 'Right 2'));
+    super('Dubby audio OUTs');
+    this.addInput('0', new ClassicPreset.Input(socket, 'Left 1'));
+    this.addInput('1', new ClassicPreset.Input(socket, 'Right 1'));
+    this.addInput('2', new ClassicPreset.Input(socket, 'Left 2'));
+    this.addInput('3', new ClassicPreset.Input(socket, 'Right 2'));
   }
 }
 
@@ -62,12 +62,12 @@ export class NumberNode extends Node {
   constructor() {
     super('Number');
     let change = (arg: any) => {
-      const value = (this.controls['value'] as ClassicPreset.InputControl<'number'>).value;
+      const value = (this.controls['0'] as ClassicPreset.InputControl<'number'>).value;
       return { value };
     }
     let initial: number = 1;
-    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
-    this.addControl('value', new ClassicPreset.InputControl('number', { initial, change }));
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Output'));
+    this.addControl('0', new ClassicPreset.InputControl('number', { initial, change }));
   }
 }
 
@@ -79,9 +79,9 @@ export class OscillatorNode extends Node {
   type = "oscillator";
   constructor() {
     super('Oscillator');
-    this.addInput('f', new ClassicPreset.Input(socket, 'Frequency'));
-    this.addInput('a', new ClassicPreset.Input(socket, 'Amplitude'));
-    this.addOutput('value', new ClassicPreset.Output(socket, 'Output'));
+    this.addInput('0', new ClassicPreset.Input(socket, 'Frequency'));
+    this.addInput('1', new ClassicPreset.Input(socket, 'Amplitude'));
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Output'));
   }
 }
 
