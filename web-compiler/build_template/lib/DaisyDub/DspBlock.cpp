@@ -364,7 +364,7 @@ void BPF::handle()
                 float yn_1 = cirBuffout[4 + sample - 1 % 4];
                 float yn_2 = cirBuffout[4 + sample - 2 % 4];
 
-                fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 + yn_2 * a_2;
+                fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 - yn_2 * a_2;
 
                 out->writeSample(fltOut, sample , 0);
 
@@ -403,7 +403,7 @@ void LPF::handle()
                 float yn_1 = cirBuffout[4 + sample - 1 % 4];
                 float yn_2 = cirBuffout[4 + sample - 2 % 4];
 
-                fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 + yn_2 * a_2;
+                fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 - yn_2 * a_2;
 
                 out->writeSample(fltOut, sample , 0);
 
