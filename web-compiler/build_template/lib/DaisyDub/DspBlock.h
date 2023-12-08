@@ -425,7 +425,7 @@ public:
 
 };
 
-//----Filters--------
+//------------Filters--------
 
 //bandPass
 
@@ -447,6 +447,21 @@ class LPF : public DspBlock {
 public:
     LPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
     ~LPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
+};
+
+
+//-------High Pass Filter HPF-------
+
+class HPF : public DspBlock {
+public:
+    HPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~HPF() = default;
     void initialize(float samplerate) override{}; 
     void handle() override;    
 
