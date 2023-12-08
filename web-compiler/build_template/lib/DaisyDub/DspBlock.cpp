@@ -362,8 +362,8 @@ void BPF::handle()
                 
                 float n_1 = cirBuffin[(4+sample-1)%4];
                 float n_2 = cirBuffin[(4+sample-2)%4];
-                float yn_1 = cirBuffout[4 + sample - 1 % 4];
-                float yn_2 = cirBuffout[4 + sample - 2 % 4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2 )% 4];
 
                 fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 - yn_2 * a_2;
 
@@ -402,8 +402,8 @@ void LPF::handle()
                 
                 float n_1 = cirBuffin[(4+sample-1)%4];
                 float n_2 = cirBuffin[(4+sample-2)%4];
-                float yn_1 = cirBuffout[4 + sample - 1 % 4];
-                float yn_2 = cirBuffout[4 + sample - 2 % 4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2) % 4];
 
                 fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 - yn_2 * a_2;
 
@@ -441,8 +441,8 @@ void HPF::handle()
                 
                 float n_1 = cirBuffin[(4+sample-1)%4];
                 float n_2 = cirBuffin[(4+sample-2)%4];
-                float yn_1 = cirBuffout[4 + sample - 1 % 4];
-                float yn_2 = cirBuffout[4 + sample - 2 % 4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2)% 4];
 
                 fltOut = in[sample] * b_0 + n_1 * b_1 + n_2 * b_2  -  yn_1 * a_1 - yn_2 * a_2;
 
