@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
@@ -25,9 +26,40 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
-  </head>
+
+    <link
+        type="text/css"
+        rel="stylesheet"
+        href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+        type="text/css"
+        rel="stylesheet"
+        href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"
+    />
+    <link type="text/css" rel="stylesheet" href="app/style.css"/>
+    
+    <!-- Scripts for DFU -->
+    <script src="dfu/dfu.js"></script>
+    <script src="dfu/dfuse.js"></script>
+    <script src="dfu/FileSaver.js"></script>
+    <script src="app/dfu-util.js"></script>
+
+    <!-- Load polyfills to support older browsers (for BootstrapVue? -- it was in the example) -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver"></script>
+
+    <!-- Required scripts for BootstrapVue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+    
+    </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <div id="app">
+    </div>
+    <script src="./app/app.js"></script>
+    
     <div id="root"></div>
     <!--
       This HTML file is a template.

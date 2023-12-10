@@ -25,7 +25,10 @@ function App() {
         <h1>Dubby web programmer</h1>
         <Actions>
           <Button onClick={() => { if (editor?.layout) editor.layout(); }  }>Layout</Button>
-          <Button onClick={() => { if (editor?.getFlow) console.log(editor.getFlow()); }  }>Test</Button>
+          <Button id='li45' onClick={() => { 
+            if (editor?.getFlow) console.log(editor.getFlow());
+            console.log(document.getElementById("root"));
+          }}>Test</Button>
         </Actions>
         {/*<img src={logo} className="App-logo" alt="logo" style={{ animation: 'none' }} width="0.5"/>
         <a
