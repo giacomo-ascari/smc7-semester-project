@@ -7,6 +7,8 @@ import { createEditor } from './rete';
 import styled from "styled-components";
 import { Button, Switch } from "antd";
 
+import { connectButton } from './dfu';
+
 const Actions = styled.div`
   position: absolute;
   top: 1em;
@@ -29,6 +31,9 @@ function App() {
             if (editor?.getFlow) console.log(editor.getFlow());
             console.log(document.getElementById("root"));
           }}>Test</Button>
+          <Button onClick={() => { 
+            connectButton();
+          }}>ConnectTest</Button>
         </Actions>
         {/*<img src={logo} className="App-logo" alt="logo" style={{ animation: 'none' }} width="0.5"/>
         <a
