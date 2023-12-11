@@ -1,3 +1,5 @@
+import log from "./utils";
+
 // dfu
 
 let dfu: any = {};
@@ -55,7 +57,7 @@ dfu.findDeviceDfuInterfaces = function(device: any) {
 
 dfu.findAllDfuInterfaces = function() {
     return navigator.usb.getDevices().then(
-        devices => {
+        (devices: any) => {
             let matches = [];
             for (let device of devices) {
                 let interfaces = dfu.findDeviceDfuInterfaces(device);
@@ -1363,7 +1365,6 @@ export async function connectButton() {
         device.close().then(onDisconnect);
         device = null;
     } else {
-        console.log("aaa")
         let filters = [];
         if (serial) {
             filters.push({ 'serialNumber': serial });
@@ -1371,36 +1372,28 @@ export async function connectButton() {
             filters.push({ 'vendorId': vid });
         }
         navigator.usb.requestDevice({ 'filters': filters }).then(
-            async selectedDevice => {
+            async (selectedDevice: any) => {
                 let interfaces = dfu.findDeviceDfuInterfaces(selectedDevice);
-                console.log(selectedDevice)
-                console.log(interfaces)
                 if (interfaces.length == 0) {
-                    console.log(selectedDevice);
-                    console.log("The selected device does not have any USB DFU interfaces.");
+                    log("The selected device does not have any USB DFU interfaces.");
                 } else if (interfaces.length == 1) {
                     await fixInterfaceNames(selectedDevice, interfaces);
                     device = await connect(new dfu.Device(selectedDevice, interfaces[0]));
-                    console.log("Connected!!!")
-                    //app.no_device = false;
+                    log("The selected device has been connected.")
                 } else {
-                    console.log("is for me?")
                     await fixInterfaceNames(selectedDevice, interfaces);
-                    console.log("aaaa???")
                     let filteredInterfaceList = interfaces.filter((ifc: any) => ifc.name.includes("0x08000000"))
-                    console.log("!!!aaaa")
                     if (filteredInterfaceList.length === 0) {
-                        console.log("No interace with flash address 0x08000000 found.")
-                        console.log("The selected device does not have a Flash Memory sectiona at address 0x08000000.");
+                        log("No interface with flash address 0x08000000 found.")
+                        log("The selected device does not have a Flash Memory sectiona at address 0x08000000.");
                     } else {
-                        console.log("Connected!!!")
-                        //app.no_device = false;
+                        log("The selected device has been connected.")
                         device = await connect(new dfu.Device(selectedDevice,filteredInterfaceList[0]));
                     }
                 }
             }
-        ).catch(error => {
-            console.log("error on connection: " + error);
+        ).catch((error: any) => {
+            log("Error on connection: " + error);
         });
     }
 };
