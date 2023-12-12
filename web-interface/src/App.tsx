@@ -57,11 +57,8 @@ function App() {
             }}>Test</Button>
 
             <Button id="bigFlashButton" onClick={() => { 
-              bigFlash();
+              btnFlashClick(editor);
             }}>Flash!</Button>
-            <Button onClick={() => { 
-              compile(editor);
-            }}>Compile</Button>
           </BarStyle>
         </ActionsStyle>
         <div ref={ref} className="rete" style={{ height: "75vh", width: "80vw" }}></div>
@@ -70,7 +67,7 @@ function App() {
   );
 }
 
-function compile(editor: any) {
+function btnFlashClick(editor: any) {
   if (editor?.getFlow) {
     axios.post('http://127.0.0.1:5000/compiler', {
       "blocks": editor.getFlow()},{
@@ -80,7 +77,8 @@ function compile(editor: any) {
             'Accept': 'application/bin'
         }
     }).then((response) => {
-  }).catch((error) => console.log(error));
+      bigFlash(response.data);
+    }).catch((error) => console.log(error));
 
     console.log(editor.getFlow());
   }
