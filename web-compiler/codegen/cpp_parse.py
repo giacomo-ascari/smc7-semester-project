@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+import traceback
 
 """
 Returns the variable with a prefix
@@ -25,7 +26,7 @@ constrParamList - optional and additional constructor parameters
 """
 def getInstantiation(varName: str, childClass: str, constrParamList) -> str:
     constrParamList.append('AUDIO_BLOCK_SIZE')
-    return f"{getPrefixedVarname(varName)} = new {childClass}({', '.join(constrParamList)});"
+    return f"{getPrefixedVarname(varName)} = new {childClass}({', '.join(str(p) for p in constrParamList)});"
 
 """ 
 Optionally creates function-call to the initialize function of a given variable extending from DspBlock in the form of:
@@ -45,14 +46,14 @@ varName->setInputReference(sourceChannel, internalChannel);
 varName - a pointer to a DspBlock isntance
 inputs - a map of input definitions
         the key defines the internal Input channel
-        the value must contain a fromId to reference the source dspBlock and a fromChannel field to
+        the value must contain a sourceId to reference the source dspBlock and a sourceChannel field to
         reference the output channel of the source dspBlock.
 
 """
 def genRouting(varName: str, inputs):
     methodCalls = []
     for inCh in inputs:
-        outCh = f"{getPrefixedVarname(inputs[inCh]['fromId'])}->getOutputChannel({inputs[inCh]['fromChannel']})"
+        outCh = f"{getPrefixedVarname(inputs[inCh]['sourceId'])}->getOutputChannel({inputs[inCh]['sourceChannel']})"
         t = f"{getPrefixedVarname(varName)}->setInputReference({outCh},{inCh});"
         methodCalls.append(t)
     return methodCalls
@@ -83,7 +84,7 @@ def genOrderedHandleCalls(blocks):
             ins = block['inputs']
             unhandledIns = []
             for inCh in ins:
-                if ins[inCh]['fromId'] not in handledIds:
+                if ins[inCh]['sourceId'] not in handledIds:
                     unhandledIns.append(ins[inCh])
             if len(unhandledIns) == 0:
                 errorState = False
@@ -106,7 +107,8 @@ def genCpp(jsonData, requestId):
         flatRoutings = [item for sublist in blockRoutings for item in sublist]
         orderedHandleCalls = genOrderedHandleCalls(blocks)
     except Exception as e:
-        return False
+        traceback.print_exc()
+        raise e
     current_directory = os.getcwd()
     final_directory = os.path.join(current_directory, 'buildspace', rf'{str(requestId)}')
     if not os.path.exists(final_directory):

@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { useRete } from 'rete-react-plugin';
 import logo from './logo.svg';
 import './App.css';
@@ -56,7 +57,7 @@ function App() {
             }}>Test</Button>
 
             <Button id="bigFlashButton" onClick={() => { 
-              bigFlash();
+              btnFlashClick(editor);
             }}>Flash!</Button>
           </BarStyle>
         </ActionsStyle>
@@ -64,6 +65,23 @@ function App() {
       </header>
     </div>
   );
+}
+
+function btnFlashClick(editor: any) {
+  if (editor?.getFlow) {
+    axios.post('http://127.0.0.1:5000/compiler', {
+      "blocks": editor.getFlow()},{
+        responseType: 'arraybuffer',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/bin'
+        }
+    }).then((response) => {
+      bigFlash(response.data);
+    }).catch((error) => console.log(error));
+
+    console.log(editor.getFlow());
+  }
 }
 
 export default App

@@ -13,6 +13,7 @@
     "@types/styled-components": "^5.1.32",
     "@types/three": "^0.156.0",
     "antd": "^5.11.5",
+    "axios": "^0.24.0",
     "elkjs": "^0.8.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

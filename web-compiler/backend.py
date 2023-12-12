@@ -1,4 +1,5 @@
 from flask import Flask, request, send_file
+from flask_cors import CORS
 from codegen.cpp_parse import *
 from compile import *
 import json
@@ -7,6 +8,7 @@ import uuid
 
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/compiler", methods=['POST'])
 def getBinary():
@@ -14,8 +16,11 @@ def getBinary():
         data = request.get_json()
         reqId = uuid.uuid4() 
         
-        if not genCpp(data, reqId):
-            app.logger.error("Couldn't generate code")
+        try:
+            genCpp(data, reqId)
+        except Exception as e:
+            app.logger.error(e)
+            # traceback.print_stack()
             return "Error", 404
         
         compile(reqId)

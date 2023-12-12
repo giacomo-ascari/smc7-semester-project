@@ -1362,7 +1362,7 @@ async function downloadServerFirmwareFile(path: any)
         })
     }
 
-export async function bigFlash() {
+export async function bigFlash(binary: any) {
 
     (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = true;
 
@@ -1402,11 +1402,10 @@ export async function bigFlash() {
         }
 
         // flashing
-
-        let firmwareFile: any; // our binaries
-        await downloadServerFirmwareFile("https://raw.githubusercontent.com/electro-smith/DaisyExamples/master/dist/seed/Blink.bin").then(buffer => {
-            firmwareFile = buffer
-        });
+        let firmwareFile: any = binary; // our binaries
+        // await downloadServerFirmwareFile("https://raw.githubusercontent.com/electro-smith/DaisyExamples/master/dist/seed/Blink.bin").then(buffer => {
+        //     firmwareFile = buffer
+        // });
 
         if (!firmwareFile) {
             log("Error during retrieval of firmware file");
