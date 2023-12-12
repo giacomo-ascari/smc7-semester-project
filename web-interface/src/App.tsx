@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { useRete } from 'rete-react-plugin';
 import logo from './logo.svg';
 import './App.css';
@@ -53,6 +54,9 @@ function App() {
             <Button onClick={() => { 
               connectButton();
             }}>ConnectTest</Button>
+            <Button onClick={() => { 
+              compile(editor);
+            }}>Compile</Button>
           </BarStyle>
         </ActionsStyle>
         <div ref={ref} className="rete" style={{ height: "75vh", width: "80vw" }}></div>
@@ -65,7 +69,7 @@ function compile(editor: any) {
   if (editor?.getFlow) {
     axios.post('http://127.0.0.1:5000/compiler', {
       "blocks": editor.getFlow()},{
-        responseType: 'blob',
+        responseType: 'arraybuffer',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/bin'
