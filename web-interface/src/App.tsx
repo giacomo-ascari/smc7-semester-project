@@ -7,13 +7,25 @@ import { createEditor } from './rete';
 import styled from "styled-components";
 import { Button, Switch } from "antd";
 
-const Actions = styled.div`
-  position: absolute;
-  top: 1em;
-  right: 1em;
+import { connectButton } from './dfu';
+
+const BarStyle = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5em;
+`;
+
+const ConsoleStyle = styled.div`
+font-size: 11pt;
+color:white;
+font-family:Consolas;
+background-color: black;
+padding: 5pt;
+`;
+
+const ActionsStyle = styled.div`
+display: flex;
+align-items: left;
+justify-content: left;
 `;
 
 function App() {
@@ -23,22 +35,26 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Dubby web programmer</h1>
-        <Actions>
-          <Button onClick={() => { if (editor?.layout) editor.layout(); }  }>Layout</Button>
-          <Button id='li45' onClick={() => { 
-            if (editor?.getFlow) console.log(editor.getFlow());
-            console.log(document.getElementById("root"));
-          }}>Test</Button>
-        </Actions>
-        {/*<img src={logo} className="App-logo" alt="logo" style={{ animation: 'none' }} width="0.5"/>
-        <a
-          className="App-link"
-          href="https://rete.js.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn Rete.js
-        </a>*/}
+        <ActionsStyle>
+          <ConsoleStyle>
+            <p id="console">Console, id=console</p>
+          </ConsoleStyle>
+          <BarStyle>
+
+            <Button onClick={() => {
+              if (editor?.layout) editor.layout();
+            }}>Layout</Button>
+
+            <Button onClick={() => { 
+              if (editor?.getFlow) console.log(editor.getFlow());
+              console.log(document.getElementById("root"));
+            }}>Test</Button>
+
+            <Button onClick={() => { 
+              connectButton();
+            }}>ConnectTest</Button>
+          </BarStyle>
+        </ActionsStyle>
         <div ref={ref} className="rete" style={{ height: "75vh", width: "80vw" }}></div>
       </header>
     </div>
