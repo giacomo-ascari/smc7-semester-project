@@ -1,6 +1,11 @@
 export default function log(msg: any) {
-    let line = document.createElement("p");
-    line.textContent = msg;
-    document.getElementById("console")?.appendChild(line);
     console.log(msg);
+    let consoleDiv = document.getElementById("console");
+    if (consoleDiv) {
+        let line = document.createElement("span");
+        line.textContent = "> " +msg;
+        consoleDiv.appendChild(document.createElement("br"));
+        consoleDiv.appendChild(line);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
 }

@@ -964,9 +964,6 @@ dfuse.Device.prototype.do_upload = async function(xfer_size: any, max_size: any)
 
 // dfu-util
 
-let firmwareFile: any = null;
-let blinkFirmwareFile: any = null;
-let bootloaderFirmwareFile: any = null;
 let device: any = null;
 
 function hex4(n: any) {
@@ -1187,16 +1184,8 @@ if (searchParams.has("serial")) {
     fromLandingPage = true;
 }
 
-let configForm = document.querySelector("#configForm");
-
-let transferSizeField = document.querySelector("#transferSize");
 let transferSize = 1024;
-//let transferSize = parseInt(transferSizeField.value);
 
-let dfuseStartAddressField = document.querySelector("#dfuseStartAddress");
-let dfuseUploadSizeField = document.querySelector("#dfuseUploadSize");
-
-let firmwareFileField = document.querySelector("#firmwareFile");
 // let firmwareFile = null;
 
 let downloadLog = document.querySelector("#downloadLog");
@@ -1204,21 +1193,15 @@ let uploadLog = document.querySelector("#uploadLog");
 
 let manifestationTolerant = true;
 
-//let device;
-
-function onDisconnect(reason: any) {
-    if (reason) {
-        console.log(reason);
-    }
-
-    //connectButton.textContent = "Connect";
+function onDisconnect(reason: any = 'Device disconnected successfully.') {
+    log(reason);
 }
 
 function onUnexpectedDisconnect(event: any) {
     if (device !== null && device.device_ !== null) {
         if (device.device_ === event.device) {
+            log('Device disconnected.');
             device.disconnected = true;
-            onDisconnect("Device disconnected");
             device = null;
         }
     }
@@ -1360,184 +1343,117 @@ async function connect(device: any) {
     return device;
 }
 
-export async function connectButton() {
-    if (device) {
-        device.close().then(onDisconnect);
-        device = null;
-    } else {
-        let filters = [];
-        if (serial) {
-            filters.push({ 'serialNumber': serial });
-        } else if (vid) {
-            filters.push({ 'vendorId': vid });
-        }
-        navigator.usb.requestDevice({ 'filters': filters }).then(
-            async (selectedDevice: any) => {
-                let interfaces = dfu.findDeviceDfuInterfaces(selectedDevice);
-                if (interfaces.length == 0) {
-                    log("The selected device does not have any USB DFU interfaces.");
-                } else if (interfaces.length == 1) {
-                    await fixInterfaceNames(selectedDevice, interfaces);
-                    device = await connect(new dfu.Device(selectedDevice, interfaces[0]));
-                    log("The selected device has been connected.")
-                } else {
-                    await fixInterfaceNames(selectedDevice, interfaces);
-                    let filteredInterfaceList = interfaces.filter((ifc: any) => ifc.name.includes("0x08000000"))
-                    if (filteredInterfaceList.length === 0) {
-                        log("No interface with flash address 0x08000000 found.")
-                        log("The selected device does not have a Flash Memory sectiona at address 0x08000000.");
-                    } else {
-                        log("The selected device has been connected.")
-                        device = await connect(new dfu.Device(selectedDevice,filteredInterfaceList[0]));
-                    }
-                }
+async function downloadServerFirmwareFile(path: any)
+    {
+        return new Promise((resolve) => {
+            let buffer;
+            let raw = new XMLHttpRequest();
+            let fname = path;
+            console.log(path)
+            raw.open("GET", fname, true);
+            raw.responseType = "arraybuffer"
+            raw.onreadystatechange = function ()
+            {
+                if (this.readyState === 4 && this.status === 200) {
+                    resolve(this.response)
+                }    
             }
-        ).catch((error: any) => {
-            log("Error on connection: " + error);
+            raw.send(null)
+        })
+    }
+
+export async function bigFlash() {
+
+    (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = true;
+
+    let filters = [];
+    if (serial) {
+        filters.push({ 'serialNumber': serial });
+    } else if (vid) {
+        filters.push({ 'vendorId': vid });
+    }
+    navigator.usb.requestDevice({ 'filters': filters }).then(async (selectedDevice: any) => {
+
+        // connecting
+
+        let interfaces = dfu.findDeviceDfuInterfaces(selectedDevice);
+        if (interfaces.length == 0)
+        {
+            log("The selected device does not have any USB DFU interfaces.");
+            throw new Error("the selected device does not have a Flash Memory section at address 0x08000000.")
+        }
+        else if (interfaces.length == 1)
+        {
+            await fixInterfaceNames(selectedDevice, interfaces);
+            device = await connect(new dfu.Device(selectedDevice, interfaces[0]));
+            log("The selected device has been connected.")
+        }
+        else
+        {
+            await fixInterfaceNames(selectedDevice, interfaces);
+            let filteredInterfaceList = interfaces.filter((ifc: any) => ifc.name.includes("0x08000000"))
+            if (filteredInterfaceList.length === 0) {
+                log("No interface with flash address 0x08000000 found.")
+                throw new Error("the selected device does not have a Flash Memory section at address 0x08000000.")
+            } else {
+                log("The selected device has been connected.")
+                device = await connect(new dfu.Device(selectedDevice,filteredInterfaceList[0]));
+            }
+        }
+
+        // flashing
+
+        let firmwareFile: any; // our binaries
+        await downloadServerFirmwareFile("https://raw.githubusercontent.com/electro-smith/DaisyExamples/master/dist/seed/Blink.bin").then(buffer => {
+            firmwareFile = buffer
         });
-    }
-};
 
-
-export async function bootloaderButton() {
-
-    //if (!configForm.checkValidity()) {
-    //    configForm.reportValidity();
-    //    return false;
-    //}
-
-    if (device && bootloaderFirmwareFile != null) {
-        setLogContext(downloadLog);
-        clearLog(downloadLog);
-        try {
-            let status = await device.getStatus();
-            if (status.state == dfu.dfuERROR) {
-                await device.clearStatus();
-            }
-        } catch (error) {
-            device.logWarning("Failed to clear status");
-        }
-        await device.do_download(transferSize, bootloaderFirmwareFile, manifestationTolerant).then(
-            () => {
-                logInfo("Done!");
-                setLogContext(null);
-                if (!manifestationTolerant) {
-                    device.waitDisconnected(5000).then(
-                        (dev: any) => {
-                            onDisconnect("finished loading");
-                            device = null;
-                        },
-                        (error: any) => {
-                            // It didn't reset and disconnect for some reason...
-                            console.log("Device unexpectedly tolerated manifestation.");
-                        }
-                    );
+        if (!firmwareFile) {
+            log("Error during retrieval of firmware file");
+            device.close().then(onDisconnect);
+            device = null;
+        } else {
+            try {
+                let status = await device.getStatus();
+                if (status.state == dfu.dfuERROR) {
+                    await device.clearStatus();
                 }
-            },
-            (error: any) => {
-                logError(error);
-                setLogContext(null);
+            } catch (error) {
+                log("Failed to clear status.");
             }
-        )
-    }            
-};
-
-export async function blinkButton() {
-
-    //if (!configForm.checkValidity()) {
-    //    configForm.reportValidity();
-    //    return false;
-    //}
-
-    if (device && blinkFirmwareFile != null) {
-        setLogContext(downloadLog);
-        clearLog(downloadLog);
-        try {
-            let status = await device.getStatus();
-            if (status.state == dfu.dfuERROR) {
-                await device.clearStatus();
-            }
-        } catch (error) {
-            device.logWarning("Failed to clear status");
-        }
-        await device.do_download(transferSize, blinkFirmwareFile, manifestationTolerant).then(
-            () => {
-                logInfo("Done!");
-                setLogContext(null);
-                if (!manifestationTolerant) {
-                    device.waitDisconnected(5000).then(
-                        (dev: any) => {
-                            onDisconnect("disconnected as blink is loaded");
-                            device = null;
-                        },
-                        (error: any) => {
-                            // It didn't reset and disconnect for some reason...
-                            console.log("Device unexpectedly tolerated manifestation.");
-                        }
-                    );
+            log("Flashing... do not disconnect.")
+            await device.do_download(transferSize, firmwareFile, manifestationTolerant).then(
+                () => {
+                    log("Flashing done!");
+                    if (!manifestationTolerant) {
+                        device.waitDisconnected(5000).then(
+                            (dev: any) => {
+                                onDisconnect("Flashing and disconnection completed.");
+                                device = null;
+                            },
+                            (error: any) => {
+                                // It didn't reset and disconnect for some reason...
+                                log("Device unexpectedly tolerated manifestation (no reset and disconnect).");
+                            }
+                        );
+                    }
+                },
+                (error: any) => {
+                    log("Error during flashing: " + error);
                 }
-            },
-            (error: any) => {
-                logError(error);
-                setLogContext(null);
-            }
-        )
-    }            
-};
-
-
-export async function downloadButton() {
-
-    //if (!configForm.checkValidity()) {
-    //    configForm.reportValidity();
-    //    return false;
-    //}
-
-    if (device && firmwareFile != null) {
-        setLogContext(downloadLog);
-        clearLog(downloadLog);
-        try {
-            let status = await device.getStatus();
-            if (status.state == dfu.dfuERROR) {
-                await device.clearStatus();
-            }
-        } catch (error) {
-            device.logWarning("Failed to clear status");
+            )
         }
-        await device.do_download(transferSize, firmwareFile, manifestationTolerant).then(
-            () => {
-                logInfo("Done!");
-                setLogContext(null);
-                if (!manifestationTolerant) {
-                    device.waitDisconnected(5000).then(
-                        (dev: any) => {
-                            onDisconnect("finished loading");
-                            device = null;
-                        },
-                        (error: any) => {
-                            // It didn't reset and disconnect for some reason...
-                            console.log("Device unexpectedly tolerated manifestation.");
-                        }
-                    );
-                }
-            },
-            (error: any) => {
-                logError(error);
-                setLogContext(null);
-            }
-        )
-    }
 
-    //return false;
-};
+    }).catch((error: any) => {
+        log("Error during connection: " + error);
+    });
+
+    (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = false;
+}
 
 // Check if WebUSB is available
 if (typeof navigator.usb !== 'undefined') {
     navigator.usb.addEventListener("disconnect", onUnexpectedDisconnect);
-    // Try connecting automatically
-    if (fromLandingPage) {
-        //autoConnect(vid, serial);
-    }
 } else {
-    console.log('WebUSB not available.');
+    log('WebUSB not available, make sure to update your browser');
 }

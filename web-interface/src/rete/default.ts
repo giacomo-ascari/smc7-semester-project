@@ -152,15 +152,10 @@ export async function createEditor(container: HTMLElement) {
 
   // Default nodes in the editor
 
-  console.log("made it here 1")
-
   const a = new Custom.NumberNode();
   const b = new Custom.NumberNode();
   const add = new Custom.AdderNode(2);
   const osc = new Custom.OscillatorNode();
-
-  console.log("made it here 2")
-
 
   await editor.addNode(osc);
   await editor.addNode(a);
