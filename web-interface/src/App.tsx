@@ -7,7 +7,7 @@ import { createEditor } from './rete';
 import styled from "styled-components";
 import { Button, Switch } from "antd";
 
-import { connectButton } from './dfu';
+import { bigFlash } from './dfu';
 
 const BarStyle = styled.div`
   display: flex;
@@ -20,6 +20,11 @@ color:white;
 font-family:Consolas;
 background-color: black;
 padding: 5pt;
+border-style: solid;
+border-color: #737F96;
+height:5.5em;
+min-width: "100px";
+overflow:auto;
 `;
 
 const ActionsStyle = styled.div`
@@ -36,23 +41,23 @@ function App() {
       <header className="App-header">
         <h1>Dubby web programmer</h1>
         <ActionsStyle>
-          <ConsoleStyle>
-            <p id="console">Console, id=console</p>
+          <ConsoleStyle id="console">
+            <span> </span>
           </ConsoleStyle>
           <BarStyle>
 
             <Button onClick={() => {
               if (editor?.layout) editor.layout();
-            }}>Layout</Button>
+            }}>Rearrange</Button>
 
             <Button onClick={() => { 
               if (editor?.getFlow) console.log(editor.getFlow());
               console.log(document.getElementById("root"));
             }}>Test</Button>
 
-            <Button onClick={() => { 
-              connectButton();
-            }}>ConnectTest</Button>
+            <Button id="bigFlashButton" onClick={() => { 
+              bigFlash();
+            }}>Flash!</Button>
           </BarStyle>
         </ActionsStyle>
         <div ref={ref} className="rete" style={{ height: "75vh", width: "80vw" }}></div>
