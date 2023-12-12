@@ -1404,6 +1404,7 @@ export async function bigFlash(flow: any, path: any) {
 
         // flashing
         let firmwareFile: any; // our binaries
+        log("Generating code and compiling...")
         await downloadServerFirmwareFile(path, flow).then(buffer => {
             firmwareFile = buffer
         });

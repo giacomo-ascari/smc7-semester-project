@@ -1,5 +1,15 @@
+@font-face {
+  font-family: "Questrial";
+  src:url("../public/Questrial-Regular.ttf");
+}
+
 .App {
   text-align: left;
+  font-family: "Questrial", sans-serif;
+  font-weight: 100;
+  background-color: #BABABA;
+  color: #2D2E2F;
+
 }
 
 .App-logo {
@@ -14,17 +24,27 @@
 }
 
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: white;
 }
 
 .App-link {
   color: #61dafb;
+}
+
+#console {
+  color:white;
+  font-family: "Consolas";
+  background-color: black;
+  margin: 0.5em;
+  padding: 0.5em;
+  height:6.5em;
+  width: 70vw;
+  overflow:auto;
+  border-radius: 0.5em;
 }
 
 @keyframes App-logo-spin {

@@ -1,10 +1,12 @@
 .rete {
+  display: flex;
+  flex-grow: 1;
   position: relative;
   width: 80vw;
-  height: 90vh;
+  height: 50vh;
   font-size: 1rem;
-  background: white;
-  margin: 1em;
-  border-radius: 1em;
+  background: #DFDFDF;
+  margin: 0.5em;
+  border-radius: 0.5em;
   text-align: left;
 }

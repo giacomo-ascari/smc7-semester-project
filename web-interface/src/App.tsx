@@ -10,22 +10,16 @@ import { Button, Switch } from "antd";
 
 import { bigFlash } from './dfu';
 
+/*
+#DFDFDF
+#2D2E2F
+#DF313C
+#BABABA
+*/
+
 const BarStyle = styled.div`
   display: flex;
   align-items: center;
-`;
-
-const ConsoleStyle = styled.div`
-font-size: 11pt;
-color:white;
-font-family:Consolas;
-background-color: black;
-padding: 5pt;
-border-style: solid;
-border-color: #737F96;
-height:5.5em;
-min-width: "100px";
-overflow:auto;
 `;
 
 const ActionsStyle = styled.div`
@@ -40,11 +34,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" width="200px" style={{ animation: 'none' }} />
         <h1>Dubby web programmer</h1>
         <ActionsStyle>
-          <ConsoleStyle id="console">
-            <span> </span>
-          </ConsoleStyle>
+          
           <BarStyle>
 
             <Button onClick={() => {
@@ -61,7 +54,11 @@ function App() {
             }}>Flash!</Button>
           </BarStyle>
         </ActionsStyle>
-        <div ref={ref} className="rete" style={{ height: "75vh", width: "80vw" }}></div>
+        <div ref={ref} className="rete"></div>
+        <div id="console">
+          <span> </span>
+        </div>
+        <p>SMC7 semester project - Ascari G., Hald K., Schnabel L., Tsakiris A. </p>
       </header>
     </div>
   );
