@@ -95,6 +95,20 @@ def genOrderedHandleCalls(blocks):
 
     return [genHandleCall(x['id']) for x in handledBlocks]
 
+def genOutputRouting(physicalOuts):
+    if physicalOuts == None:
+        raise Exception
+    outRoutings = []
+    print(physicalOuts)
+    for i in range(0, 4):
+        if str(i) not in physicalOuts:
+            outRoutings.append(f'physical_outs->writeChannel({{0}}, {i});')
+            continue
+        outRouting = physicalOuts[f'{i}']
+        sourceId = outRouting['sourceId']
+        sourceChannel = outRouting['sourceChannel']
+        outRoutings.append(f'physical_outs->writeChannel({getPrefixedVarname(sourceId)}->getOutputChannel({sourceChannel}), {i});')
+    return outRoutings
 def genCpp(jsonData, requestId):
     # file = open('test.json')
 
@@ -106,6 +120,7 @@ def genCpp(jsonData, requestId):
         blockRoutings = [genRouting(x['id'], x['inputs']) for x in blocks]
         flatRoutings = [item for sublist in blockRoutings for item in sublist]
         orderedHandleCalls = genOrderedHandleCalls(blocks)
+        genOutputRoutings = genOutputRouting(jsonData['physicalOut'])
     except Exception as e:
         traceback.print_exc()
         raise e
@@ -119,6 +134,7 @@ def genCpp(jsonData, requestId):
     with open(f"{final_directory}/Main.cpp", 'w+') as writefile:
         template = template.replace('%declarations%', '\n'.join(blockDeclarations))
         template = template.replace('%handle_invocations%', '\n'.join(orderedHandleCalls))
+        template = template.replace('%handle_output%', '\n'.join(genOutputRoutings))
         template = template.replace('%instanciation%', '\n'.join(blockInstanciation))
         template = template.replace('%initialization%', '\n'.join(blockInitializations))
         template = template.replace('%routing%', '\n'.join(flatRoutings))

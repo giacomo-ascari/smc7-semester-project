@@ -19,6 +19,10 @@ public:
         this->samplesPerChannel = bufferSizePerChannel;
         // Initialize the buffer with appropriate size: channels * samplesPerChannel
         buffer = new float[numChannels * bufferSizePerChannel];
+        for (int i = 0; i < numChannels * bufferSizePerChannel; i++) 
+        {
+            buffer[i] = 0;
+        }
     };
 
     // Function to get a pointer to the first sample of a specified channel
@@ -39,9 +43,10 @@ public:
     void writeChannel(const float * data, int channelNumber)
     {
         // Check if the provided channelNumber is with in the range of existing channels
-        if (channelNumber < 0 || channelNumber >= numChannels) {
+        if (channelNumber < 0 || channelNumber >= numChannels || data == nullptr) {
             return;
         }
+
         // Calculate starting position for writing
         int startIndex = channelNumber * samplesPerChannel;
         // Copy the provided buffer into the multichannel buffer

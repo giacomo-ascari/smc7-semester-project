@@ -10,6 +10,7 @@ Dubby dubby;
 
 
 MultiChannelBuffer * physical_ins;
+MultiChannelBuffer * physical_outs;
 DspBlock * knob1;
 DspBlock * knob2;
 DspBlock * knob3;
@@ -22,7 +23,6 @@ DspBlock * noise;
 DspBlock * rhythm;
 DspBlock * lfofreq;
 DspBlock * lfo;
-
 
 
 
@@ -55,14 +55,15 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     
   
 
-    float * oscOut = noise->getOutputChannel(0);
+    physical_outs->writeChannel({0}, 0);
+    physical_outs->writeChannel(noise->getOutputChannel(0), 1);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
         {
             float sample = out[j][i];
             sumSquared[j] += sample * sample;
-            out[j][i] = oscOut[i] * 0.25;
+            out[j][i] = physical_outs->getChannel(0)[i] * 0.25;
         } 
         dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .1f;   
 	}
@@ -83,6 +84,7 @@ int main(void)
     dubby.ProcessAllControls();
 
     physical_ins = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
+    physical_outs = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
 
     knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
     knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
