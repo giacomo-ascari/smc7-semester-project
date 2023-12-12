@@ -6,6 +6,9 @@ WORKDIR /app
 RUN DEBIAN_FRONTEND=noninteractive apt-get update -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip
+RUN DEBIAN_FRONTEND=noninteractive pip3 install flask
+RUN DEBIAN_FRONTEND=noninteractive pip3 install flask_cors
 
 # copy the current folder to the image
 COPY . .
@@ -25,4 +28,4 @@ RUN arm-none-eabi-gcc --version
 #RUN
 
 # start webserver
-CMD python3 server.py
+CMD flask --app backend run

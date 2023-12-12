@@ -69,18 +69,19 @@ function App() {
 
 function btnFlashClick(editor: any) {
   if (editor?.getFlow) {
-    axios.post('http://127.0.0.1:5000/compiler', {
+    bigFlash({blocks: editor.getFlow()}, 'http://127.0.0.1:5000/compiler');
+    /*axios.post('http://127.0.0.1:5000/compiler', {
       "blocks": editor.getFlow()},{
         responseType: 'arraybuffer',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/bin'
         }
-    }).then((response) => {
+    }).then((response: any) => {
       bigFlash(response.data);
-    }).catch((error) => console.log(error));
+    }).catch((error: any) => console.log(error));
 
-    console.log(editor.getFlow());
+    console.log(editor.getFlow());*/
   }
 }
 

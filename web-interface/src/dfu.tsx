@@ -1343,26 +1343,27 @@ async function connect(device: any) {
     return device;
 }
 
-async function downloadServerFirmwareFile(path: any)
+async function downloadServerFirmwareFile(path: any, data: any)
     {
         return new Promise((resolve) => {
             let buffer;
             let raw = new XMLHttpRequest();
             let fname = path;
             console.log(path)
-            raw.open("GET", fname, true);
+            raw.open("POST", fname, true);
             raw.responseType = "arraybuffer"
+            raw.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
             raw.onreadystatechange = function ()
             {
                 if (this.readyState === 4 && this.status === 200) {
                     resolve(this.response)
                 }    
             }
-            raw.send(null)
+            raw.send(JSON.stringify(data))
         })
     }
 
-export async function bigFlash(binary: any) {
+export async function bigFlash(flow: any, path: any) {
 
     (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = true;
 
@@ -1402,10 +1403,10 @@ export async function bigFlash(binary: any) {
         }
 
         // flashing
-        let firmwareFile: any = binary; // our binaries
-        // await downloadServerFirmwareFile("https://raw.githubusercontent.com/electro-smith/DaisyExamples/master/dist/seed/Blink.bin").then(buffer => {
-        //     firmwareFile = buffer
-        // });
+        let firmwareFile: any; // our binaries
+        await downloadServerFirmwareFile(path, flow).then(buffer => {
+            firmwareFile = buffer
+        });
 
         if (!firmwareFile) {
             log("Error during retrieval of firmware file");
