@@ -24,8 +24,15 @@ RUN echo $PATH
 # check ARM toolchain
 RUN arm-none-eabi-gcc --version
 
+WORKDIR /app/build_template/lib/libDaisy
+RUN make
+
+WORKDIR /app/build_template/lib/DaisySP
+RUN make
+
+WORKDIR /app
 # set up 
 #RUN
 
 # start webserver
-CMD flask --app backend run
+CMD python3 backend.py

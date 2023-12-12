@@ -35,3 +35,6 @@ def getBinary():
         return send_file(filename, as_attachment=True)
     except Exception as e:
         return str(e)
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
