@@ -43,7 +43,7 @@ type Schemes = GetSchemes<Custom.Node, Custom.Connection<Custom.Node>>;
 class Connection<A extends Custom.Node, B extends Custom.Node> extends Classic.Connection<
   A,
   B
-> {}
+> { }
 
 
 
@@ -72,16 +72,49 @@ export async function createEditor(container: HTMLElement) {
 
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
-      ['Add', () => new Custom.AdderNode()],
       ["Dubby", [
         ['Dubby knobs IN', () => new Custom.DubbyKnobInputsNode()],
         ['Dubby audio OUT', () => new Custom.DubbyAudioOutputsNode()],
       ]],
       ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
+      ['Feedback Delay', () => new Custom.FeedbackDelayNode()],
+      ['Filter', [
+        ['Lowpass', () => new Custom.FilterNode('lowpass')],
+        ['Bandpas', () => new Custom.FilterNode('bandpass')],
+        ['Highpass', () => new Custom.FilterNode('highpass')]
+      ]],
+      ['Math', [
+        ['Add', [
+          ['2 Channels', () => new Custom.AdderNode(2)],
+          ['3 Channels', () => new Custom.AdderNode(3)],
+          ['4 Channels', () => new Custom.AdderNode(4)],
+          ['5 Channels', () => new Custom.AdderNode(5)],
+        ]],
+        ['Multiply', [
+          ['2 Channels', () => new Custom.MultiplierNode(2)],
+          ['3 Channels', () => new Custom.MultiplierNode(3)],
+          ['4 Channels', () => new Custom.MultiplierNode(4)],
+          ['5 Channels', () => new Custom.MultiplierNode(5)],
+        ]],
+        ['Subtract', [
+          ['2 Channels', () => new Custom.SubstractNode(2)],
+          ['3 Channels', () => new Custom.SubstractNode(3)],
+          ['4 Channels', () => new Custom.SubstractNode(4)],
+          ['5 Channels', () => new Custom.SubstractNode(5)],
+        ]],
+        ['Divide', [
+          ['2 Channels', () => new Custom.DivisionNode(2)],
+          ['3 Channels', () => new Custom.DivisionNode(3)],
+          ['4 Channels', () => new Custom.DivisionNode(4)],
+          ['5 Channels', () => new Custom.DivisionNode(5)],
+        ]]]
+      ],
+      ['Unipolarise', () => new Custom.UnipolarsiserNode()],
+      ['Noise', () => new Custom.NoiseNode()]
     ]),
   });
-  
+
   // Plugin configuration
 
   HistoryExtensions.keyboard(history);
@@ -123,7 +156,7 @@ export async function createEditor(container: HTMLElement) {
 
   const a = new Custom.NumberNode();
   const b = new Custom.NumberNode();
-  const add = new Custom.AdderNode();
+  const add = new Custom.AdderNode(2);
   const osc = new Custom.OscillatorNode();
 
   console.log("made it here 2")
@@ -166,16 +199,17 @@ export async function createEditor(container: HTMLElement) {
       // building the nodes
       // excluding connections
       editor.getNodes().forEach(n => {
-        let block: any = {
+        let block: BlockDTO = {
           type: n.type,
           id: n.id,
-          constructorParams: {},
+          constructorParams: [],
           inputs: {},
           //outputs: {}
         };
         if (n.controls) {
           Object.keys(n.controls).forEach(e => {
-            block.constructorParams = {...block.constructorParams, [e]: (n.controls[e] as any).value};
+            // block.constructorParams = [(n.controls[e] as any).value];
+            block.constructorParams.push((n.controls[e] as any).value)
           });
         };
         blocks.push(block)
@@ -189,7 +223,7 @@ export async function createEditor(container: HTMLElement) {
           //  b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
           //}
           if (c.target == b.id) {
-            b.inputs = {...b.inputs, [c.targetInput]: {source: c.source, sourceOutput: c.sourceOutput}};
+            b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: c.source, sourceChannel: c.sourceOutput } };
           }
         });
       })
@@ -201,4 +235,12 @@ export async function createEditor(container: HTMLElement) {
       AreaExtensions.zoomAt(area, editor.getNodes());
     }
   };
+}
+
+interface BlockDTO {
+  type: string,
+  id: string,
+  constructorParams: string[],
+  inputs: any,
+  //outputs: {}
 }

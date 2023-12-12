@@ -4,3 +4,5 @@ web-compiler/output/**
 playground/**/build
 DubbyLib/prototype/lib/DaisySP
 DubbyLib/prototype/lib/libDaisy
+web-compiler/buildspace/**
+!*main.cpp.template

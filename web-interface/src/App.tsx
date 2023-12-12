@@ -6,6 +6,8 @@ import './rete.css';
 import { createEditor } from './rete';
 import styled from "styled-components";
 import { Button, Switch } from "antd";
+import axios from 'axios';
+
 
 const Actions = styled.div`
   position: absolute;
@@ -29,6 +31,7 @@ function App() {
             if (editor?.getFlow) console.log(editor.getFlow());
             console.log(document.getElementById("root"));
           }}>Test</Button>
+          <Button onClick={() => compile(editor)}>Compile</Button>
         </Actions>
         {/*<img src={logo} className="App-logo" alt="logo" style={{ animation: 'none' }} width="0.5"/>
         <a
@@ -43,6 +46,22 @@ function App() {
       </header>
     </div>
   );
+}
+
+function compile(editor: any) {
+  if (editor?.getFlow) {
+    axios.post('http://127.0.0.1:5000/compiler', {
+      "blocks": editor.getFlow()},{
+        responseType: 'blob',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/bin'
+        }
+    }).then((response) => {
+  }).catch((error) => console.log(error));
+
+    console.log(editor.getFlow());
+  }
 }
 
 export default App
