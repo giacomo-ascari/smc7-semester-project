@@ -11,7 +11,6 @@ export class Node extends ClassicPreset.Node {
 
 export class Connection<N extends Node> extends ClassicPreset.Connection<N, N> {}
 
-
 // dubby knobs INPUT node
 export class DubbyKnobInputsNode extends Node {
   width = 180;
@@ -32,7 +31,7 @@ export class DubbyAudioOutputsNode extends Node {
   height = 200;
   type = "dubbyaudioout";
   constructor() {
-    super('Dubby audio OUTs');
+    super('Dubby Audio OUTs');
     this.addInput('0', new ClassicPreset.Input(socket, 'Left 1'));
     this.addInput('1', new ClassicPreset.Input(socket, 'Right 1'));
     this.addInput('2', new ClassicPreset.Input(socket, 'Left 2'));
@@ -200,3 +199,4 @@ export class FilterNode extends Node {
   }
 }
 
+export const dubbyOuts = new DubbyAudioOutputsNode();

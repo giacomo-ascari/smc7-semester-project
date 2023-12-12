@@ -74,7 +74,7 @@ export async function createEditor(container: HTMLElement) {
     items: ContextMenuPresets.classic.setup([
       ["Dubby", [
         ['Dubby knobs IN', () => new Custom.DubbyKnobInputsNode()],
-        ['Dubby audio OUT', () => new Custom.DubbyAudioOutputsNode()],
+        ['Dubby audio OUT', () => Custom.dubbyOuts],
       ]],
       ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
@@ -153,19 +153,18 @@ export async function createEditor(container: HTMLElement) {
   // Default nodes in the editor
 
   const a = new Custom.NumberNode();
-  const b = new Custom.NumberNode();
-  const add = new Custom.AdderNode(2);
   const osc = new Custom.OscillatorNode();
+  const dubOut = new Custom.DubbyAudioOutputsNode();
 
   await editor.addNode(osc);
   await editor.addNode(a);
-  await editor.addNode(b);
-  await editor.addNode(add);
+  await editor.addNode(dubOut);
 
   // Default connections in the editor
 
-  await editor.addConnection(new Connection(a, '0', add, '0'));
-  await editor.addConnection(new Connection(b, '0', add, '1'));
+  await editor.addConnection(new Connection(a, '0', osc, '0'));
+  await editor.addConnection(new Connection(osc, '0', dubOut, '0'));
+  await editor.addConnection(new Connection(osc, '0', dubOut, '1'));
 
   // Autoarrange elements in the area
 
@@ -189,41 +188,64 @@ export async function createEditor(container: HTMLElement) {
   return {
     destroy: () => area.destroy(),
     getFlow: () => {
-      let blocks: any = [];
+      let blocks: BlockDTO[] = [];
 
       // building the nodes
       // excluding connections
-      editor.getNodes().forEach(n => {
-        let block: BlockDTO = {
-          type: n.type,
-          id: n.id,
-          constructorParams: [],
-          inputs: {},
-          //outputs: {}
-        };
-        if (n.controls) {
-          Object.keys(n.controls).forEach(e => {
-            // block.constructorParams = [(n.controls[e] as any).value];
-            block.constructorParams.push((n.controls[e] as any).value)
-          });
-        };
-        blocks.push(block)
-      })
+      editor.getNodes()
+        .filter(n => n.type != 'dubbyaudioout')
+        .forEach(n => {
+          let block: BlockDTO = {
+            type: n.type,
+            id: n.id,
+            constructorParams: [],
+            inputs: {},
+            //outputs: {}
+          };
+          if (n.controls) {
+            Object.keys(n.controls).forEach(e => {
+              // block.constructorParams = [(n.controls[e] as any).value];
+              block.constructorParams.push((n.controls[e] as any).value)
+            });
+          };
+          blocks.push(block)
+        })
 
       // building the connections
       // time to make montresor proud
-      editor.getConnections().forEach(c => {
-        blocks.forEach((b: any) => {
-          //if (c.source == b.id) {
-          //  b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
-          //}
-          if (c.target == b.id) {
-            b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: c.source, sourceChannel: c.sourceOutput } };
-          }
-        });
-      })
+      editor.getConnections()
+        .forEach(c => {
+          blocks
+            .filter(b => b.type != 'dubbyaudioout')
+            .forEach(b => {
+              //if (c.source == b.id) {
+              //  b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
+              //}
+              if (c.target == b.id) {
+                b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: c.source, sourceChannel: c.sourceOutput } };
+              }
+            });
+        })
 
-      return blocks;
+      const outBlockIds = editor.getNodes()
+        .filter(n => n.type == 'dubbyaudioout').map(n => n.id);
+      console.log({outBlockIds});
+      let outputs = {}
+      editor.getConnections()
+        .filter(conn => outBlockIds.includes(conn.target))
+        .sort((a, b) => a.targetInput.localeCompare(b.targetInput))
+        .forEach(conn => {
+          if(Object.keys(outputs).includes(conn.targetInput)) return;
+          outputs = {
+            ...outputs,
+            [conn.targetInput]: { sourceId: conn.source, sourceChannel: conn.sourceOutput }
+          }
+        })
+
+      return {
+        physicalOut: outputs,
+        blocks: blocks
+      };
     },
     layout: async () => {
       await arrange.layout();

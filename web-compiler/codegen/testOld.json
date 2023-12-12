@@ -1,4 +1,10 @@
 {
+    "physicalOut": {
+        "0": {
+            "fromId":"multi0",
+            "fromChannel": 0
+        }
+    },
     "blocks": [
         {
             "type":"ConstValue",

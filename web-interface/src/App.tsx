@@ -45,8 +45,7 @@ function App() {
             }}>Rearrange</Button>
 
             <Button onClick={() => { 
-              if (editor?.getFlow) console.log(editor.getFlow());
-              console.log(document.getElementById("root"));
+              btnTestClick(editor);
             }}>Test</Button>
 
             <Button id="bigFlashButton" onClick={() => { 
@@ -66,20 +65,30 @@ function App() {
 
 function btnFlashClick(editor: any) {
   if (editor?.getFlow) {
-    bigFlash({blocks: editor.getFlow()}, 'http://127.0.0.1:5000/compiler');
-    /*axios.post('http://127.0.0.1:5000/compiler', {
-      "blocks": editor.getFlow()},{
-        responseType: 'arraybuffer',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/bin'
-        }
-    }).then((response: any) => {
-      bigFlash(response.data);
-    }).catch((error: any) => console.log(error));
-
-    console.log(editor.getFlow());*/
+    let reqBody = editor.getFlow();
+    bigFlash(reqBody, 'http://127.0.0.1:5000/compiler');
   }
 }
 
+function btnTestClick(editor: any) {
+  if (editor?.getFlow) {
+    console.log(editor.getFlow());
+    return new Promise((resolve) => {
+      let buffer;
+      let raw = new XMLHttpRequest();
+      let fname = 'http://127.0.0.1:5000/compiler';
+      raw.open("POST", fname, true);
+      raw.responseType = "arraybuffer"
+      raw.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      raw.onreadystatechange = function ()
+      {
+          if (this.readyState === 4 && this.status === 200) {
+              resolve(this.response)
+          }    
+      }
+      raw.send(JSON.stringify(editor.getFlow()))
+  }).then(() => console.log('something'))
+  }
+  console.log(document.getElementById("root"));
+}
 export default App
