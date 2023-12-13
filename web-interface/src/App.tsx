@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useRete } from 'rete-react-plugin';
 import logo from './logo.svg';
@@ -6,7 +6,6 @@ import './App.css';
 import './rete.css';
 import { createEditor } from './rete';
 import styled from "styled-components";
-import { Button, Switch } from "antd";
 
 import { bigFlash } from './dfu';
 
@@ -17,42 +16,68 @@ import { bigFlash } from './dfu';
 #BABABA
 */
 
-const BarStyle = styled.div`
-  display: flex;
-  align-items: center;
+const Button = styled.button`
+  font-family: "Questrial", sans-serif;
+  font-size: 13pt;
+  background-color: #DF313C;
+  color: white;
+  padding: 0.5em 0.5em;
+  margin: 0.5em 0.5em;
+  border-radius: 0.5em;
+  border-style: hidden;
+  cursor: pointer;
+  &:disabled {
+    background-color: #2D2E2F;
+    cursor: default;
+  }
 `;
 
 const ActionsStyle = styled.div`
 display: flex;
-align-items: left;
-justify-content: left;
+  flex-direction: row;
+  align-items: left;
+  justify-content: left;
 `;
+
+
 
 function App() {
   const [ref, editor] = useRete(createEditor) as any; // i know it's janky but let's roll
+  const [isDisabled, setDisabled] = useState(false);
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" width="200px" style={{ animation: 'none' }} />
+        <img src={logo} className="App-logo" alt="logo" style={{ width: 120, height: 120, marginTop: '0.5em', animation: 'none' }} />
         <h1>Dubby web programmer</h1>
+        <p>Visual programming tool developed for Dubby, by Componental</p>
+        
         <ActionsStyle>
-          
-          <BarStyle>
+        
+          <Button onClick={() => {
+            if (editor?.layout) editor.layout();
+          }}>Rearrange nodes</Button>
 
-            <Button onClick={() => {
-              if (editor?.layout) editor.layout();
-            }}>Rearrange</Button>
+          <Button onClick={() => { 
+            alert("function not implemented. but CTRL+Z works!")
+          }}>↩</Button>
 
-            <Button onClick={() => { 
-              btnTestClick(editor);
-            }}>Test</Button>
+          <Button onClick={() => { 
+            alert("function not implemented. but CTRL+Y works!")
+          }}>↪</Button>
 
-            <Button id="bigFlashButton" onClick={() => { 
-              btnFlashClick(editor);
-            }}>Flash!</Button>
-          </BarStyle>
+          <Button disabled={isDisabled} onClick={async () => {
+            setDisabled(true);
+            btnFlashClick(editor, () => {setDisabled(false);});
+          }}>Flash!</Button>
+
+          <Button onClick={() => { 
+            alert("function not implemented yet!")
+          }}>❔</Button>
+
         </ActionsStyle>
+
+
         <div ref={ref} className="rete"></div>
         <div id="console">
           <span> </span>
@@ -63,32 +88,11 @@ function App() {
   );
 }
 
-function btnFlashClick(editor: any) {
+async function btnFlashClick(editor: any, callback: any) {
   if (editor?.getFlow) {
     let reqBody = editor.getFlow();
-    bigFlash(reqBody, 'http://127.0.0.1:5000/compiler');
+    await bigFlash(reqBody, 'http://localhost:5000/compiler', callback);
   }
 }
 
-function btnTestClick(editor: any) {
-  if (editor?.getFlow) {
-    console.log(editor.getFlow());
-    return new Promise((resolve) => {
-      let buffer;
-      let raw = new XMLHttpRequest();
-      let fname = 'http://127.0.0.1:5000/compiler';
-      raw.open("POST", fname, true);
-      raw.responseType = "arraybuffer"
-      raw.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-      raw.onreadystatechange = function ()
-      {
-          if (this.readyState === 4 && this.status === 200) {
-              resolve(this.response)
-          }    
-      }
-      raw.send(JSON.stringify(editor.getFlow()))
-  }).then(() => console.log('something'))
-  }
-  console.log(document.getElementById("root"));
-}
 export default App

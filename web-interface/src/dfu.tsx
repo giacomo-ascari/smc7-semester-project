@@ -1363,10 +1363,8 @@ async function downloadServerFirmwareFile(path: any, data: any)
         })
     }
 
-export async function bigFlash(flow: any, path: any) {
-
-    (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = true;
-
+export async function bigFlash(flow: any, path: any, callback: any) {
+    
     let filters = [];
     if (serial) {
         filters.push({ 'serialNumber': serial });
@@ -1447,9 +1445,9 @@ export async function bigFlash(flow: any, path: any) {
 
     }).catch((error: any) => {
         log("Error during connection: " + error);
+    }).finally(() => {
+        callback();
     });
-
-    (document.getElementById("bigFlashButton") as HTMLInputElement).disabled = false;
 }
 
 // Check if WebUSB is available
