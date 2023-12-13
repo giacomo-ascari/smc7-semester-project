@@ -130,6 +130,23 @@ protected:
     Dubby& dubby;
 };
 
+class DubbyKnobs : public DspBlock {
+public:
+    DubbyKnobs(Dubby& dubby, int bufferLength) : DspBlock(0, 4, bufferLength), dubby (dubby)
+    {
+        knobs = new Dubby::Ctrl[4];
+        knobs[0] = static_cast<Dubby::Ctrl>(0);
+        knobs[1] = static_cast<Dubby::Ctrl>(1);
+        knobs[2] = static_cast<Dubby::Ctrl>(2);
+        knobs[3] = static_cast<Dubby::Ctrl>(3);
+    };
+    void initialize(float samplerate) override {};
+    void handle() override;
+protected:
+    Dubby::Ctrl * knobs;
+    Dubby& dubby;
+};
+
 /**
  * Outputs an 1-sample impulse in the specified intervall.
  * Needs to be initialized

@@ -1,6 +1,7 @@
 import { ClassicPreset as Classic, GetSchemes, NodeEditor } from 'rete';
 
 import { Area2D, AreaExtensions, AreaPlugin } from 'rete-area-plugin';
+import log from '../utils'
 
 import {
   ReactPlugin,
@@ -37,6 +38,7 @@ import {
 
 // custom imports
 import * as Custom from './custom_nodes';
+import { Root } from 'rete-react-plugin/_types/utils';
 
 type Schemes = GetSchemes<Custom.Node, Custom.Connection<Custom.Node>>;
 
@@ -69,13 +71,8 @@ export async function createEditor(container: HTMLElement) {
   const history = new HistoryPlugin<Schemes>();
 
   // Context menu plugin (right click menu) configuration
-
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup([
-      ["Dubby", [
-        ['Dubby knobs IN', () => new Custom.DubbyKnobInputsNode()],
-        ['Dubby audio OUT', () => Custom.dubbyOuts],
-      ]],
       ['Number', () => new Custom.NumberNode()],
       ['Oscillator', () => new Custom.OscillatorNode()],
       ['Feedback Delay', () => new Custom.FeedbackDelayNode()],
@@ -116,7 +113,6 @@ export async function createEditor(container: HTMLElement) {
   });
 
   // Plugin configuration
-
   HistoryExtensions.keyboard(history);
 
   history.addPreset(HistoryPresets.classic.setup());
@@ -150,15 +146,27 @@ export async function createEditor(container: HTMLElement) {
     })
   );
 
-  // Default nodes in the editor
+    // Custom event handler
+    editor.addPipe((context) => {
+      if (context.type == 'noderemove') {
+        if(context.data.type == 'DubbyKnobs' || context.data.type == 'dubbyaudioout') {
+          log('Sorry this node cannot deleted');
+          return;
+        }
+      }
+      return context;
+    });
 
+  // Default nodes in the editor
   const a = new Custom.NumberNode();
   const osc = new Custom.OscillatorNode();
   const dubOut = new Custom.DubbyAudioOutputsNode();
+  const dubKnobs = new Custom.DubbyKnobInputsNode();
 
   await editor.addNode(osc);
   await editor.addNode(a);
   await editor.addNode(dubOut);
+  await editor.addNode(dubKnobs);
 
   // Default connections in the editor
 
@@ -185,6 +193,8 @@ export async function createEditor(container: HTMLElement) {
   AreaExtensions.selectableNodes(area, selector, { accumulating });
   RerouteExtensions.selectablePins(reroutePlugin, selector, accumulating);
 
+
+
   return {
     destroy: () => area.destroy(),
     getFlow: () => {
@@ -202,6 +212,9 @@ export async function createEditor(container: HTMLElement) {
             inputs: {},
             //outputs: {}
           };
+          if (n.type == 'DubbyKnobs') {
+            block.constructorParams.push('dubby');
+          }
           if (n.controls) {
             Object.keys(n.controls).forEach(e => {
               // block.constructorParams = [(n.controls[e] as any).value];
@@ -218,9 +231,6 @@ export async function createEditor(container: HTMLElement) {
           blocks
             .filter(b => b.type != 'dubbyaudioout')
             .forEach(b => {
-              //if (c.source == b.id) {
-              //  b.outputs = {...b.outputs, [c.sourceOutput]: {target: c.target, targetInput: c.targetInput}};
-              //}
               if (c.target == b.id) {
                 b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: c.source, sourceChannel: c.sourceOutput } };
               }
