@@ -15,7 +15,7 @@ export class Connection<N extends Node> extends ClassicPreset.Connection<N, N> {
 export class DubbyKnobInputsNode extends Node {
   width = 180;
   height = 200;
-  type = "dubbyknobs";
+  type = "DubbyKnobs";
   constructor() {
     super('Dubby knob INs');
     this.addOutput('0', new ClassicPreset.Output(socket, 'Knob 1'));

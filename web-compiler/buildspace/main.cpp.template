@@ -12,10 +12,6 @@ Dubby dubby;
 
 MultiChannelBuffer * physical_ins;
 MultiChannelBuffer * physical_outs;
-DspBlock * knob1;
-DspBlock * knob2;
-DspBlock * knob3;
-DspBlock * knob4;
 
 %declarations%
 
@@ -26,11 +22,6 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
         physical_ins->writeChannel(in[i], i);
     }
     double sumSquared[4] = { 0.0f };
-    
-    knob1->handle();
-    knob2->handle();
-    knob3->handle();
-    knob4->handle();
     
     %handle_invocations%
     
@@ -64,11 +55,6 @@ int main(void)
 
     physical_ins = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
     physical_outs = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
-
-    knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
-    knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
-    knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
-    knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
     %instanciation%
    
