@@ -77,7 +77,6 @@ function App() {
 
         </ActionsStyle>
 
-
         <div ref={ref} className="rete"></div>
         <div id="console">
           <span> </span>

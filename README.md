@@ -13,29 +13,39 @@ Contains everything required to compile a project for DaisyDub. This includes th
 **playground**:
 Contains a playground, to test your DspBlock implementations on either the DaisySeed or DaisyDub.
 
-## Run the web-compiler docker container
-The web-compiler takes care of the configuration of the various tools required to compile C++ for the Dubby. The base image of the container is a raw Ubuntu image, to which the build tools, the ARM toolchain and the webserver are later added.
+## Deploy the project locally
 
-### Manual
+In order for the project to run, both web-compiler and web-interface must be set up and running simultaneously.
+
+### Run the web-compiler docker container
+The web-compiler takes care of the configuration of the various tools required to generate and compile C++ code for the Dubby. The base image of the container is a raw Ubuntu image, to which the build tools, the ARM toolchain and the webserver are later added.
+
+#### Requirements
+- Docker
+
+#### Manual
 1. Change current directory with `cd web-compiler`
-2. Build the image with `docker build -t web-compiler .`
-3. Run the image interactively with `docker run -i -p 8000:8000 web-compiler`
-In order to run the same image detached from the terminal substitute `-i` with `-d`
-For M1 users, on step 2, use `docker build -t web-compiler . --platform linux/x86_64`
+2. Download [ARM Toolchain](#https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2?revision=ca0cbf9c-9de2-491c-ac48-898b5bbc0443&rev=ca0cbf9c9de2491cac48898b5bbc0443&hash=72D7BCC38C586E3FE39D2A1DB133305C64CA068B
+) in the current directory
+2. Build the image with `docker build -t webcompiler .`
+3. Run the image interactively with `docker run -i -p 5000:5000 webcompiler`
 
-## Run the python server
-Simple python server running on port 8000. It accepts a file, puts it into a directory with a random id, copies necessary build files into that directory and compiles the file.
+#### Warnings
+- In order to run the same image detached from the terminal substitute `-i` with `-d`.
+- For M1 users, on step 2, use `docker build -t webcompiler . --platform linux/x86_64`.
+- In case Docker Desktop is used you might have some problems with deprecated commands. If installed,. you can use `buildx`, with `docker buildx build -t webcompiler .`.
 
-### Requirements
-- Python 3
-- uuid
-- http.server
-- shutil
-- subprocess
+### Run the web-interface React app
+The web interface consists of a React app. Make sure that your browser is updated and avoid running it inside a virtual machine, otherwise WebUSB might not be available for use.
 
-### Manual
-1. python3 server.py
-2. Do a request to upload file
-`curl -X PUT --upload-file <your_file_name> http://localhost:8000`
+#### Requirements
+- NodeJS
+- Node Package Manager (NPM)
+
+#### Manual
+1. Change current directory with `cd web-interface`
+2. Run the installation of packages with `npm i`
+3. Run the application with `npm start`
+4. Browse to [localhost:3000](http://localhost:3000)
 
 
