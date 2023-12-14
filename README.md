@@ -32,7 +32,7 @@ The web-compiler takes care of the configuration of the various tools required t
 
 #### Warnings
 - In order to run the same image detached from the terminal substitute `-i` with `-d`.
-- For M1 users, on step 2, use `docker build -t webcompiler . --platform linux/x86_64`.
+- For M1 users, on step 3, use `docker build -t webcompiler . --platform linux/x86_64`.
 - In case Docker Desktop is used you might have some problems with deprecated commands. If installed,. you can use `buildx`, with `docker buildx build -t webcompiler .`.
 
 ### Run the web-interface React app
