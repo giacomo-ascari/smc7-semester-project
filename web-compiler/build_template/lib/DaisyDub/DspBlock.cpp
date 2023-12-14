@@ -1,5 +1,6 @@
 #include "DspBlock.h"
 
+using namespace dspblock;
 
 void Clock::initialize(float samplerate)
 {
@@ -221,74 +222,62 @@ void NoiseGen::handle()
 }
 
 /* --------Compressor---------------*/
-#include <cmath>
-#include <stdlib.h>
-#include <stdint.h>
-#include "compressor.h"
-
-using namespace daisysp;
-
-#ifndef max
-#define max(a, b) ((a < b) ? b : a)
-#endif
-
-#ifndef min
-#define min(a, b) ((a < b) ? a : b)
-#endif
-
-void Compressor::initialize(float samplerate)
-{
-    samplerate_      = min(192000, max(1, samplerate));
-    samplerate_inv_  = 1.0f / (float)samplerate_;
-    samplerate_inv2_ = 2.0f / (float)samplerate_;
-
-    // Initializing the params in this order to avoid dividing by zero
-
-    Compressor.SetRatio(2.0f);
-    Compressor.SetAttack(0.1f);
-    Compressor.SetRelease(0.1f);
-    Compressor.SetThreshold(-12.0f);
-    Compressor.AutoMakeup(true);
-
-    gain_rec_  = 0.1f;
-    slope_rec_ = 0.1f;
+void dspblock::Compressor::initialize(float samplerate) {
+    compressor.Init(samplerate);
+    compressor.SetThreshold(-10.0f);
+    compressor.SetRatio(40.0f);
+    compressor.SetAttack(0.02f);
+    compressor.SetRelease(0.001f); 
 }
 
-float Compressor::Process(float in)
-{
-    float inAbs   = fabsf(in);
-    float cur_slo = ((slope_rec_ > inAbs) ? rel_slo_ : atk_slo_);
-    slope_rec_    = ((slope_rec_ * cur_slo) + ((1.0f - cur_slo) * inAbs));
-    gain_rec_     = ((atk_slo2_ * gain_rec_)
-                 + (ratio_mul_
-                    * fmax(((20.f * fastlog10f(slope_rec_)) - thresh_), 0.f)));
-    gain_         = pow10f(0.05f * (gain_rec_ + makeup_gain_));
 
-    return gain_ * in;
+void dspblock::Compressor::handle() {
+    float *input = getInputReference(0);
+    compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
+// void dspblock::Compressor::handle() {
+//     float *input = getInputReference(0);
+//     float* processedOutput = new float[bufferLength]; // Allocate memory for processed output
+//     compressor.ProcessBlock(input, processedOutput, bufferLength);
+//     out->writeChannel(processedOutput, 0); // Write processed output to the MultichannelBuffer
+//     delete[] processedOutput; // Free the allocated memory
+// }
 
-void Compressor::ProcessBlock(float *in, float *out, float *key, size_t size)
-{
-    for(size_t i = 0; i < size; i++)
-    {
-        Process(key[i]);
-        out[i] = Apply(in[i]);
-    }
+/*---------Biquad Filter for Multiband Compressor------*/
+void dspblock::Biquad::initialize(float samplerate) {
+        biquadFilter.Init(samplerate);
+        biquadFilter.SetCutoff(200);
+        biquadFilter.SetRes(0);
+       
 }
-
-// Multi-channel block processing
-void Compressor::ProcessBlock(float **in,
-                              float **out,
-                              float * key,
-                              size_t  channels,
-                              size_t  size)
-{
-    for(size_t i = 0; i < size; i++)
-    {
-        Process(key[i]);
-        for(size_t c = 0; c < channels; c++)
+void dspblock::Biquad::handle() {
+        float * input = getInputReference(0);
+        for (int i = 0; i < bufferLength; i++)
         {
-            out[c][i] = Apply(in[c][i]);
+                out->writeSample(biquadFilter.Process(input[i]), i, 0);
         }
+
+}
+
+void KnobMap::handle() {
+    float val = dubby.GetKnobValue(knob);
+    switch (knob) {
+        case Dubby::Ctrl::CTRL_1:
+            compressor.SetAttack(val); // Assuming val ranges between 0 and 1
+            break;
+        case Dubby::Ctrl::CTRL_2:
+            compressor.SetRelease(val);
+            break;
+        case Dubby::Ctrl::CTRL_3:
+            compressor.SetRatio(val);
+            break;
+        case Dubby::Ctrl::CTRL_4:
+            compressor.SetThreshold(val);
+            break;
+        // Add more cases for other controls if needed
+    }
+    // Write the knob value to output
+    for (int i = 0; i < bufferLength; i++) {
+        out->writeSample(val, i, 0);
     }
 }

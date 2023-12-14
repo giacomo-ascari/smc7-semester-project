@@ -7,6 +7,7 @@
 
 using namespace daisy;
 using namespace daisysp;
+using namespace dspblock;
 
 Dubby dubby;
 
@@ -19,9 +20,11 @@ DspBlock * knob4;
 
 DspBlock * f;
 DspBlock * sine;
-
-DspBlock * DemoCompressor;
-
+DspBlock * f_lfo;
+DspBlock * lfo;
+DspBlock * amp;
+DspBlock * demoCompressor;
+// DspBlock * biquadFilter;
 
 
 
@@ -40,9 +43,14 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     
     f->handle();
     sine->handle();
+    f_lfo->handle();
+    lfo->handle();
+    amp->handle();
+    demoCompressor->handle();
+    // biquadFilter->handle();
   
 
-    float * oscOut = sine->getOutputChannel(0);
+    float * oscOut = demoCompressor ->getOutputChannel(0);
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
@@ -71,15 +79,17 @@ int main(void)
 
     physical_ins = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
 
-    knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
-    knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
-    knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
-    knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
+    // knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
+    // knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
+    // knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
+    // knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
+    knob1 = new KnobMap(dubby, Dubby::Ctrl::CTRL_1, AUDIO_BLOCK_SIZE);
+    knob2 = new KnobMap(dubby, Dubby::Ctrl::CTRL_2, AUDIO_BLOCK_SIZE);
+    knob3 = new KnobMap(dubby, Dubby::Ctrl::CTRL_3, AUDIO_BLOCK_SIZE);
+    knob4 = new KnobMap(dubby, Dubby::Ctrl::CTRL_4, AUDIO_BLOCK_SIZE);
 
-   
-
-    f = new ConstValue(220, AUDIO_BLOCK_SIZE);
+    f = new ConstValue(500, AUDIO_BLOCK_SIZE);
     f->initialize(48000);
 
     sine = new Osc(AUDIO_BLOCK_SIZE);
@@ -87,12 +97,28 @@ int main(void)
     sine->setInputReference(f->getOutputChannel(0), 0);
     
 
-    DemoCompressor = new Compressor(AUDIO_BLOCK_SIZE);
+    f_lfo = new ConstValue(1, AUDIO_BLOCK_SIZE);
+    f_lfo->initialize(48000);
+
+    lfo = new Osc(AUDIO_BLOCK_SIZE);
+    lfo->initialize(48000);
+    lfo->setInputReference(f_lfo->getOutputChannel(0), 0);
+
+    amp = new NMultiplier(2, AUDIO_BLOCK_SIZE);
+    amp->initialize(48000);
+    amp->setInputReference(sine->getOutputChannel(0), 0);
+    amp->setInputReference(lfo->getOutputChannel(0), 1);
+
+
+    demoCompressor = new dspblock::Compressor(AUDIO_BLOCK_SIZE);
+    demoCompressor->initialize(48000);
+    demoCompressor->setInputReference(amp->getOutputChannel(0), 0);
     
 
-
-
-
+    // biquadFilter = new dspblock::Biquad(AUDIO_BLOCK_SIZE);
+    // biquadFilter->initialize(48000);
+    // biquadFilter->setInputReference(amp->getOutputChannel(0), 0);
+    
     dubby.DrawLogo(); 
     System::Delay(2000);
 	dubby.seed.StartAudio(AudioCallback);
