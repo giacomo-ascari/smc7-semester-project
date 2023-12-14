@@ -33,8 +33,7 @@ DspBlock * sine;
 DspBlock * f_lfo;
 DspBlock * lfo;
 DspBlock * amp;
-DspBlock * demoCompressor;
-// DspBlock * biquadFilter;
+DspBlock * compressor;
 
 
 
@@ -64,8 +63,7 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     f_lfo->handle();
     lfo->handle();
     amp->handle();
-    demoCompressor->handle();
-    // biquadFilter->handle();
+    compressor->handle();
   
 
     dubbyAudioOuts->writeChannel({0}, 0);
@@ -133,10 +131,6 @@ int main(void)
 
     noise = new NoiseGen(AUDIO_BLOCK_SIZE); 
     noise->setInputReference(lfo->getOutputChannel(0),0);
-    knob1 = new KnobMap(dubby, Dubby::Ctrl::CTRL_1, AUDIO_BLOCK_SIZE);
-    knob2 = new KnobMap(dubby, Dubby::Ctrl::CTRL_2, AUDIO_BLOCK_SIZE);
-    knob3 = new KnobMap(dubby, Dubby::Ctrl::CTRL_3, AUDIO_BLOCK_SIZE);
-    knob4 = new KnobMap(dubby, Dubby::Ctrl::CTRL_4, AUDIO_BLOCK_SIZE);
 
     f = new ConstValue(500, AUDIO_BLOCK_SIZE);
     f->initialize(48000);
@@ -145,7 +139,6 @@ int main(void)
     sine->initialize(48000);
     sine->setInputReference(f->getOutputChannel(0), 0);
     
-
     f_lfo = new ConstValue(1, AUDIO_BLOCK_SIZE);
     f_lfo->initialize(48000);
 
@@ -159,14 +152,10 @@ int main(void)
     amp->setInputReference(lfo->getOutputChannel(0), 1);
 
 
-    demoCompressor = new dspblock::Compressor(AUDIO_BLOCK_SIZE);
-    demoCompressor->initialize(48000);
-    demoCompressor->setInputReference(amp->getOutputChannel(0), 0);
+    compressor = new dspblock::Compressor(AUDIO_BLOCK_SIZE);
+    compressor->initialize(48000);
+    compressor->setInputReference(amp->getOutputChannel(0), 0);
     
-
-    // biquadFilter = new dspblock::Biquad(AUDIO_BLOCK_SIZE);
-    // biquadFilter->initialize(48000);
-    // biquadFilter->setInputReference(amp->getOutputChannel(0), 0);
     
     dubby.DrawLogo(); 
     System::Delay(2000);

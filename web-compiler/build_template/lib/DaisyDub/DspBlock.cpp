@@ -325,14 +325,6 @@ void dspblock::Compressor::handle() {
     float *input = getInputReference(0);
     compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
-// void dspblock::Compressor::handle() {
-//     float *input = getInputReference(0);
-//     float* processedOutput = new float[bufferLength]; // Allocate memory for processed output
-//     compressor.ProcessBlock(input, processedOutput, bufferLength);
-//     out->writeChannel(processedOutput, 0); // Write processed output to the MultichannelBuffer
-//     delete[] processedOutput; // Free the allocated memory
-// }
-
 
 
 void KnobMap::handle() {

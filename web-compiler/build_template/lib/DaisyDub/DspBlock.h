@@ -511,7 +511,7 @@ float cirBuffout[4];
 class Compressor : public DspBlock
 {
   public:
-    Compressor(int bufferLength) : DspBlock(2, 2, bufferLength)  {}
+    Compressor(int bufferLength) : DspBlock(2, 2, bufferLength)  {};
     ~Compressor() = default;
     
     void initialize(float samplerate) override;
@@ -519,5 +519,4 @@ class Compressor : public DspBlock
 
     private:
     daisysp::Compressor compressor;
-
 };
