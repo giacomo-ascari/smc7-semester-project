@@ -326,6 +326,13 @@ void dspblock::Compressor::handle() {
     compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
 
+/* --------MultiBand Compressor---------------*/
+void dspblock::Compressor::Intitialize(float samplerarte)
+
+
+
+
+
 
 void KnobMap::handle() {
     float val = dubby.GetKnobValue(knob);
@@ -348,4 +355,10 @@ void KnobMap::handle() {
     for (int i = 0; i < bufferLength; i++) {
         out->writeSample(val, i, 0);
     }
+
+void dspblock::LPF::initialize(float samplerate) {}
+
+
+
+
 }
