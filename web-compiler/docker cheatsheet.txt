@@ -4,7 +4,7 @@ docker build -t chatgptreports .
 #get the image id with
 docker images
 
-#run the container
+#run the container (-d runs in detached mode)
 docker run -d -p 81:80 imageidhere
 
 #to list containers

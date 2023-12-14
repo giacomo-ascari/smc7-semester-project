@@ -24,6 +24,10 @@ public:
         this->samplesPerChannel = bufferSizePerChannel;
         // Initialize the buffer with appropriate size: channels * samplesPerChannel
         buffer = new float[numChannels * bufferSizePerChannel];
+        for (int i = 0; i < numChannels * bufferSizePerChannel; i++) 
+        {
+            buffer[i] = 0;
+        }
     };
 
     // Function to get a pointer to the first sample of a specified channel
@@ -44,9 +48,10 @@ public:
     void writeChannel(const float * data, int channelNumber)
     {
         // Check if the provided channelNumber is with in the range of existing channels
-        if (channelNumber < 0 || channelNumber >= numChannels) {
+        if (channelNumber < 0 || channelNumber >= numChannels || data == nullptr) {
             return;
         }
+
         // Calculate starting position for writing
         int startIndex = channelNumber * samplesPerChannel;
         // Copy the provided buffer into the multichannel buffer
@@ -128,6 +133,32 @@ public:
 protected:
     Dubby::Ctrl knob;
     Dubby& dubby;
+};
+
+class DubbyKnobs : public DspBlock {
+public:
+    DubbyKnobs(Dubby& dubby, int bufferLength) : DspBlock(0, 4, bufferLength), dubby (dubby)
+    {
+        knobs = new Dubby::Ctrl[4];
+        knobs[0] = static_cast<Dubby::Ctrl>(0);
+        knobs[1] = static_cast<Dubby::Ctrl>(1);
+        knobs[2] = static_cast<Dubby::Ctrl>(2);
+        knobs[3] = static_cast<Dubby::Ctrl>(3);
+    };
+    void initialize(float samplerate) override {};
+    void handle() override;
+protected:
+    Dubby::Ctrl * knobs;
+    Dubby& dubby;
+};
+
+class DubbyAudioIns : public DspBlock {
+public:
+    DubbyAudioIns(int bufferLength) : DspBlock(0, 4, bufferLength) {};
+    void initialize(float samplerate) override;
+    void handle() override {};
+    void writeChannel(const float * data, int channelNumber);
+
 };
 
 /**
@@ -243,6 +274,13 @@ private:
 };
 
 
+
+
+// -----------------------------MATH OPERATIORS ------------------------------------//
+
+//----Multiplier----//
+//Multiplies tow diferent input values and outputs the result.
+
 /**
  * A block to multiply the output of n channels sample-wise.
  * Assign the amount of input channels in the constructor
@@ -263,6 +301,80 @@ public:
 private:
     int numInputs;
 };
+
+
+//-----Summation----//
+//Add n diferent channel input values and outputs the result
+class Sum : public DspBlock {
+public:
+    Sum(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Sum() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+
+//---Subtraction----/
+//Subtract n diferent channel input values and outputs the result
+class Sub : public DspBlock {
+public:
+    Sub(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Sub() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+
+//---Division----//
+//Divides n diferent channel input values and outputs the result
+class Div : public DspBlock {
+public:
+    Div(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    {
+        this->numInputs = numInputs;
+    };
+    ~Div() = default;
+    void initialize(float samplerate) override {};
+    void handle() override;
+private:
+    int numInputs;
+};
+
+
+class Scaler : public DspBlock {
+public:
+Scaler(float inMin, float inMax, float outMin, float outMax, int bufferLength) : DspBlock(1, 1, bufferLength)
+{
+this->inMin = inMin;
+this->inMax = inMax;
+this->outMin = outMin;
+this->outMax = outMax;
+};
+~Scaler() = default;
+void initialize(float samplerate) override{};
+void handle() override;
+
+private:
+float inMin, inMax, outMin, outMax;
+
+
+};
+
+//-----------------------------END OF MATH OPERATORS------------------------------//
+
+
+
+
 
 /**
  * A block to make a signal unipolar by using the absolute value of the input.
@@ -308,15 +420,90 @@ class Mix : public DspBlock {
 };
 
 //  ------- white noise generator-------
+// This 
 
 class NoiseGen : public DspBlock {
 public:
     NoiseGen(int bufferLenth);
     ~NoiseGen() = default;
-    void initialize(float samplerate) override;
+    void initialize(float samplerate) override {};
     void handle() override;
     
 
+};
+
+//--------BPM related time signature to samples converter------//
+
+// the user insert BPM , Note value , and dotted (if it is preferred)
+// then the block converts the musical time into time in samples depending on BPM
+// Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
+// Dotted Off = 0; Dotted On = 1;
+class MusicalTime : public DspBlock {
+public:
+    MusicalTime(int bufferlength) : DspBlock(3,1,bufferlength){};
+    ~MusicalTime() = default;
+    void initialize(float samplerate) override{};
+    void handle()override;
+
+}; 
+
+//----- Time in samples to HZ converter--------//
+// This block takes time in samples and outputs the frequency that is related to samples
+//Example: if we want to modulate a block with a specific musical time (quarters) we have to convert
+//the samples that MusicalTime block provides to HZ that oscilator can handle. So, that what this block does.
+
+class StoF : public DspBlock {
+public:
+    StoF(int bufferlength) : DspBlock(1,1,bufferlength){};
+    ~StoF() = default;
+    void initialize(float samplerate) override{};
+    void handle() override;
+
+};
+
+//------------Filters--------
+
+//bandPass
+
+class BPF : public DspBlock {
+public:
+    BPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~BPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
+};
+
+//------Low Pass Filter----
+
+class LPF : public DspBlock {
+public:
+    LPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~LPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
+};
+
+
+//-------High Pass Filter HPF-------
+
+class HPF : public DspBlock {
+public:
+    HPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    ~HPF() = default;
+    void initialize(float samplerate) override{}; 
+    void handle() override;    
+
+private:
+float cirBuffin[4];
+float cirBuffout[4];
 };
 
 /* --------Compressor---------------*/
@@ -334,19 +521,3 @@ class Compressor : public DspBlock
     daisysp::Compressor compressor;
 
 };
-
-/*---------Biquad Filter - For Multiband Compressor----------*/
-class Biquad : public DspBlock
-{
-public:
-    Biquad(int bufferLenght) : DspBlock(1, 1, bufferLenght) {}
-    ~Biquad() = default;
-    void initialize(float samplerate) override;
-    void handle() override;
-
-    private:
-    daisysp::Biquad biquadFilter;
-
-};
-
-}

@@ -1,0 +1,77 @@
+#include "daisysp.h"
+#include "lib/DaisyDub/Dubby.h"
+#include "lib/DaisyDub/DspBlock.h"
+
+#define samplerate 44100
+
+static float * EMPTY_BUFFER;
+
+using namespace daisy;
+using namespace daisysp;
+
+Dubby dubby;
+
+DubbyAudioIns * block_dubbyAudioIn;
+MultiChannelBuffer * dubbyAudioOuts;
+
+%declarations%
+
+void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        block_dubbyAudioIn->writeChannel(in[i], i);
+    }
+    double sumSquared[4] = { 0.0f };
+    
+    %handle_invocations%
+    
+    %handle_output%
+
+	for (size_t i = 0; i < size; i++)
+	{
+        for (int j = 0; j < 4; j++) 
+        {
+            float sample = dubbyAudioOuts->getChannel(j)[i];
+            sumSquared[j] += sample * sample;
+            out[j][i] = sample * 0.25;
+        } 
+        dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .1f;   
+	}
+
+    for (int j = 0; j < 4; j++) dubby.currentLevels[j] = sqrt(sumSquared[j] / AUDIO_BLOCK_SIZE);
+}
+
+int main(void)
+{
+	dubby.seed.Init();
+    // dubby.InitAudio();
+	// dubby.seed.StartLog(true);
+
+    dubby.Init();
+    
+	dubby.seed.SetAudioBlockSize(AUDIO_BLOCK_SIZE); // number of samples handled per callback
+	dubby.seed.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
+    dubby.ProcessAllControls();
+
+    EMPTY_BUFFER = new float[AUDIO_BLOCK_SIZE]();
+
+    block_dubbyAudioIn = new DubbyAudioIns(AUDIO_BLOCK_SIZE);
+    dubbyAudioOuts = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
+
+    %instanciation%
+   
+    %initialization%
+
+    %routing%
+
+    dubby.DrawLogo(); 
+    System::Delay(2000);
+	dubby.seed.StartAudio(AudioCallback);
+    dubby.UpdateMenu(0, false);
+
+	while(1) { 
+        dubby.ProcessAllControls();
+        dubby.UpdateDisplay();
+	}
+}

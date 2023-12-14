@@ -1,0 +1,41 @@
+{
+    "blocks": [
+        {
+            "type": "oscillator",
+            "id": "9b133f86b7cb36f0",
+            "constructorParams": [],
+            "inputs": {}
+        },
+        {
+            "type": "const",
+            "id": "0f7e668700029dd5",
+            "constructorParams": [
+                    "1"
+            ],
+            "inputs": {}
+        },
+        {
+            "type": "const",
+            "id": "3015bc1d1e622637",
+            "constructorParams": [
+                "10"
+            ],
+            "inputs": {}
+        },
+        {
+            "type": "adder",
+            "id": "8f9945f757ff2517",
+            "constructorParams": [],
+            "inputs": {
+                "0": {
+                    "fromId": "0f7e668700029dd5",
+                    "fromChannel": "0"
+                },
+                "1": {
+                    "fromId": "3015bc1d1e622637",
+                    "fromChannel": "val0ue"
+                }
+            }
+        }
+    ]
+}

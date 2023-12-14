@@ -6,6 +6,9 @@ WORKDIR /app
 RUN DEBIAN_FRONTEND=noninteractive apt-get update -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip
+RUN DEBIAN_FRONTEND=noninteractive pip3 install flask
+RUN DEBIAN_FRONTEND=noninteractive pip3 install flask_cors
 
 # copy the current folder to the image
 COPY . .
@@ -21,8 +24,15 @@ RUN echo $PATH
 # check ARM toolchain
 RUN arm-none-eabi-gcc --version
 
+WORKDIR /app/build_template/lib/libDaisy
+RUN make
+
+WORKDIR /app/build_template/lib/DaisySP
+RUN make
+
+WORKDIR /app
 # set up 
 #RUN
 
 # start webserver
-CMD python3 server.py
+CMD python3 backend.py
