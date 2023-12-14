@@ -3,6 +3,8 @@
 #include "../../web-compiler/build_template/lib/DaisyDub/Dubby.h"
 #include "../../web-compiler/build_template/lib/DaisyDub/DspBlock.h"
 
+
+
 using namespace daisy;
 using namespace daisysp;
 
@@ -17,6 +19,9 @@ DspBlock * knob4;
 
 DspBlock * f;
 DspBlock * sine;
+
+DspBlock * DemoCompressor;
+
 
 
 
@@ -82,6 +87,12 @@ int main(void)
     sine->setInputReference(f->getOutputChannel(0), 0);
     
 
+    DemoCompressor = new Compressor(AUDIO_BLOCK_SIZE);
+    
+
+
+
+
     dubby.DrawLogo(); 
     System::Delay(2000);
 	dubby.seed.StartAudio(AudioCallback);
@@ -92,3 +103,4 @@ int main(void)
         dubby.UpdateDisplay();
 	}
 }
+
