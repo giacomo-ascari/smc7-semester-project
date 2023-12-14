@@ -4,13 +4,15 @@
 
 #define samplerate 44100
 
+static float * EMPTY_BUFFER;
+
 using namespace daisy;
 using namespace daisysp;
 
 Dubby dubby;
 
 DubbyAudioIns * block_dubbyAudioIn;
-MultiChannelBuffer * physical_outs;
+MultiChannelBuffer * dubbyAudioOuts;
 
 %declarations%
 
@@ -30,9 +32,9 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 	{
         for (int j = 0; j < 4; j++) 
         {
-            float sample = out[j][i];
+            float sample = dubbyAudioOuts->getChannel(j)[i];
             sumSquared[j] += sample * sample;
-            out[j][i] = physical_outs->getChannel(j)[i] * 0.25;
+            out[j][i] = sample * 0.25;
         } 
         dubby.scope_buffer[i] = (out[0][i] + out[1][i])  * .1f;   
 	}
@@ -52,8 +54,10 @@ int main(void)
 	dubby.seed.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
     dubby.ProcessAllControls();
 
+    EMPTY_BUFFER = new float[AUDIO_BLOCK_SIZE]();
+
     block_dubbyAudioIn = new DubbyAudioIns(AUDIO_BLOCK_SIZE);
-    physical_outs = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
+    dubbyAudioOuts = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
 
     %instanciation%
    

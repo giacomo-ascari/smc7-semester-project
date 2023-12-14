@@ -103,12 +103,12 @@ def genOutputRouting(physicalOuts):
     print(physicalOuts)
     for i in range(0, 4):
         if str(i) not in physicalOuts:
-            outRoutings.append(f'physical_outs->writeChannel({{0}}, {i});')
+            outRoutings.append(f'dubbyAudioOuts->writeChannel(EMPTY_BUFFER, {i});')
             continue
         outRouting = physicalOuts[f'{i}']
         sourceId = outRouting['sourceId']
         sourceChannel = outRouting['sourceChannel']
-        outRoutings.append(f'physical_outs->writeChannel({getPrefixedVarname(sourceId)}->getOutputChannel({sourceChannel}), {i});')
+        outRoutings.append(f'dubbyAudioOuts->writeChannel({getPrefixedVarname(sourceId)}->getOutputChannel({sourceChannel}), {i});')
     return outRoutings
 def genCpp(jsonData, requestId):
     # file = open('test.json')
