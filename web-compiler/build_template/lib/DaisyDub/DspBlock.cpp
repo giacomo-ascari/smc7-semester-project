@@ -133,6 +133,22 @@ void DubbyKnobs::handle()
         }
 }
 
+void DubbyAudioIns::initialize(float samplerate)
+{
+        for (int k = 0; k < 4; k++)
+        {
+                for (int i = 0; i < bufferLength; i++)
+                {
+                        out->writeSample(0, i, k);
+                }
+        }
+}
+
+void DubbyAudioIns::writeChannel(const float * data, int channelNumber)
+{
+        out->writeChannel(data, channelNumber);
+}
+
 // Fills the ConstValue's buffer with a value
 void ConstValue::initialize(float samplerate)
 {

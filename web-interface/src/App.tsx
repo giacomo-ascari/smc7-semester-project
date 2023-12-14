@@ -94,4 +94,20 @@ async function btnFlashClick(editor: any, callback: any) {
   }
 }
 
+// Please don't delete yet.
+function testWithoutFlash(editor: any) {
+  if (editor?.getFlow) {
+    let reqBody = editor.getFlow();
+    return new Promise((resolve) => {
+      let buffer;
+      let raw = new XMLHttpRequest();
+      let fname = 'http://localhost:8000/compiler';
+      raw.open("POST", fname, true);
+      raw.responseType = "arraybuffer"
+      raw.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      raw.send(JSON.stringify(reqBody))
+  }).then()
+  }
+}
+
 export default App

@@ -79,6 +79,7 @@ def genOrderedHandleCalls(blocks):
         blocks.remove(block)
     while len(blocks) > 0:
         handledIds = [x['id'] for x in handledBlocks]
+        handledIds.append('dubbyAudioIn')
         errorState = True
         for block in blocks:
             ins = block['inputs']

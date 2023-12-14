@@ -9,7 +9,7 @@ using namespace daisysp;
 Dubby dubby;
 
 
-MultiChannelBuffer * physical_ins;
+DubbyAudioIns * dubbyAudioIn;
 MultiChannelBuffer * physical_outs;
 DspBlock * knob1;
 DspBlock * knob2;
@@ -32,7 +32,7 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 {
     for(int i = 0; i < 4; i++)
     {
-        physical_ins->writeChannel(in[i], i);
+        dubbyAudioIn->writeChannel(in[i], i);
     }
     double sumSquared[4] = { 0.0f };
     
@@ -57,6 +57,7 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 
     physical_outs->writeChannel({0}, 0);
     physical_outs->writeChannel(noise->getOutputChannel(0), 1);
+
 	for (size_t i = 0; i < size; i++)
 	{
         for (int j = 0; j < 4; j++) 
@@ -83,7 +84,7 @@ int main(void)
 	dubby.seed.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
     dubby.ProcessAllControls();
 
-    physical_ins = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
+    dubbyAudioIn = new DubbyAudioIns(AUDIO_BLOCK_SIZE);
     physical_outs = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
 
     knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);

@@ -146,27 +146,29 @@ export async function createEditor(container: HTMLElement) {
     })
   );
 
-    // Custom event handler
-    editor.addPipe((context) => {
-      if (context.type == 'noderemove') {
-        if(context.data.type == 'DubbyKnobs' || context.data.type == 'dubbyaudioout') {
-          log('Sorry this node cannot deleted');
-          return;
-        }
+  // Custom event handler
+  editor.addPipe((context) => {
+    if (context.type == 'noderemove') {
+      if(context.data.type == 'DubbyKnobs' || context.data.type == 'dubbyaudioout') {
+        log('Sorry this node cannot deleted');
+        return;
       }
-      return context;
-    });
+    }
+    return context;
+  });
 
   // Default nodes in the editor
   const a = new Custom.NumberNode();
   const osc = new Custom.OscillatorNode();
   const dubOut = new Custom.DubbyAudioOutputsNode();
   const dubKnobs = new Custom.DubbyKnobInputsNode();
+  const dubIn = new Custom.DubbyAudioInputsNode();
 
   await editor.addNode(osc);
   await editor.addNode(a);
   await editor.addNode(dubOut);
   await editor.addNode(dubKnobs);
+  await editor.addNode(dubIn);
 
   // Default connections in the editor
 
@@ -201,37 +203,66 @@ export async function createEditor(container: HTMLElement) {
       let blocks: BlockDTO[] = [];
 
       // building the nodes
+
+      const allBlocks = editor.getNodes().map(n => {
+        let block: BlockDTO = {
+          type: n.type,
+          id: n.id,
+          constructorParams: [],
+          inputs: {},
+          //outputs: {}
+        };
+        if (n.type == 'DubbyKnobs') {
+          block.constructorParams.push('dubby');
+        }
+        if (n.controls) {
+          Object.keys(n.controls).forEach(e => {
+            // block.constructorParams = [(n.controls[e] as any).value];
+            block.constructorParams.push((n.controls[e] as any).value)
+          });
+        };
+        return block;
+      })
+
+      blocks = allBlocks.filter(n => n.type != 'dubbyaudioout' && n.type != 'DubbyAudioIns');
+
       // excluding connections
-      editor.getNodes()
-        .filter(n => n.type != 'dubbyaudioout')
-        .forEach(n => {
-          let block: BlockDTO = {
-            type: n.type,
-            id: n.id,
-            constructorParams: [],
-            inputs: {},
-            //outputs: {}
-          };
-          if (n.type == 'DubbyKnobs') {
-            block.constructorParams.push('dubby');
-          }
-          if (n.controls) {
-            Object.keys(n.controls).forEach(e => {
-              // block.constructorParams = [(n.controls[e] as any).value];
-              block.constructorParams.push((n.controls[e] as any).value)
-            });
-          };
-          blocks.push(block)
-        })
+      // editor.getNodes()
+      //   .filter(n => n.type != 'dubbyaudioout' && n.type != 'DubbyAudioIns')
+      //   .forEach(n => {
+      //     let block: BlockDTO = {
+      //       type: n.type,
+      //       id: n.id,
+      //       constructorParams: [],
+      //       inputs: {},
+      //       //outputs: {}
+      //     };
+      //     if (n.type == 'DubbyKnobs') {
+      //       block.constructorParams.push('dubby');
+      //     }
+      //     if (n.controls) {
+      //       Object.keys(n.controls).forEach(e => {
+      //         // block.constructorParams = [(n.controls[e] as any).value];
+      //         block.constructorParams.push((n.controls[e] as any).value)
+      //       });
+      //     };
+      //     blocks.push(block)
+      //   })
 
       // building the connections
       // time to make montresor proud
+      const audioInNodeId = allBlocks.find(b => b.type == 'DubbyAudioIns')?.id ?? '-1';
+
       editor.getConnections()
         .forEach(c => {
-          blocks
+          allBlocks
             .filter(b => b.type != 'dubbyaudioout')
             .forEach(b => {
               if (c.target == b.id) {
+                if (c.source == audioInNodeId) {
+                  b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: Custom.DubbyAudioInputsNode.DEFAULT_ID, sourceChannel: c.sourceOutput } };
+                  return;
+                }
                 b.inputs = { ...b.inputs, [c.targetInput]: { sourceId: c.source, sourceChannel: c.sourceOutput } };
               }
             });
@@ -239,7 +270,6 @@ export async function createEditor(container: HTMLElement) {
 
       const outBlockIds = editor.getNodes()
         .filter(n => n.type == 'dubbyaudioout').map(n => n.id);
-      console.log({outBlockIds});
       let outputs = {}
       editor.getConnections()
         .filter(conn => outBlockIds.includes(conn.target))

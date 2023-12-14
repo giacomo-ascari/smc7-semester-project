@@ -147,6 +147,15 @@ protected:
     Dubby& dubby;
 };
 
+class DubbyAudioIns : public DspBlock {
+public:
+    DubbyAudioIns(int bufferLength) : DspBlock(0, 4, bufferLength) {};
+    void initialize(float samplerate) override;
+    void handle() override {};
+    void writeChannel(const float * data, int channelNumber);
+
+};
+
 /**
  * Outputs an 1-sample impulse in the specified intervall.
  * Needs to be initialized

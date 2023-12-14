@@ -39,6 +39,21 @@ export class DubbyAudioOutputsNode extends Node {
   }
 }
 
+export class DubbyAudioInputsNode extends Node {
+  static readonly DEFAULT_ID = 'dubbyAudioIn';
+
+  width = 180;
+  height = 200;
+  type = "DubbyAudioIns";
+  constructor() {
+    super('Dubby Audio INs');
+    this.addOutput('0', new ClassicPreset.Input(socket, 'Left 1'));
+    this.addOutput('1', new ClassicPreset.Input(socket, 'Right 1'));
+    this.addOutput('2', new ClassicPreset.Input(socket, 'Left 2'));
+    this.addOutput('3', new ClassicPreset.Input(socket, 'Right 2'));
+  }
+}
+
 // number node
 // emits a constant value
 export class NumberNode extends Node {
