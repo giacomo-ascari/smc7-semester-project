@@ -149,7 +149,10 @@ export async function createEditor(container: HTMLElement) {
   // Custom event handler
   editor.addPipe((context) => {
     if (context.type == 'noderemove') {
-      if(context.data.type == 'DubbyKnobs' || context.data.type == 'dubbyaudioout') {
+      if(context.data.type == 'DubbyKnobs' 
+        || context.data.type == 'dubbyaudioout' 
+        || context.data.type == 'DubbyAudioIns') 
+      {
         log('Sorry this node cannot deleted');
         return;
       }
@@ -200,12 +203,12 @@ export async function createEditor(container: HTMLElement) {
   return {
     destroy: () => area.destroy(),
     getFlow: () => {
-      let blocks: BlockDTO[] = [];
+      let nodes: NodeDto[] = [];
 
       // building the nodes
 
-      const allBlocks = editor.getNodes().map(n => {
-        let block: BlockDTO = {
+      const allNodes = editor.getNodes().map(n => {
+        let node: NodeDto = {
           type: n.type,
           id: n.id,
           constructorParams: [],
@@ -213,49 +216,25 @@ export async function createEditor(container: HTMLElement) {
           //outputs: {}
         };
         if (n.type == 'DubbyKnobs') {
-          block.constructorParams.push('dubby');
+          node.constructorParams.push('dubby');
         }
         if (n.controls) {
           Object.keys(n.controls).forEach(e => {
-            // block.constructorParams = [(n.controls[e] as any).value];
-            block.constructorParams.push((n.controls[e] as any).value)
+            node.constructorParams.push((n.controls[e] as any).value)
           });
         };
-        return block;
+        return node;
       })
 
-      blocks = allBlocks.filter(n => n.type != 'dubbyaudioout' && n.type != 'DubbyAudioIns');
-
-      // excluding connections
-      // editor.getNodes()
-      //   .filter(n => n.type != 'dubbyaudioout' && n.type != 'DubbyAudioIns')
-      //   .forEach(n => {
-      //     let block: BlockDTO = {
-      //       type: n.type,
-      //       id: n.id,
-      //       constructorParams: [],
-      //       inputs: {},
-      //       //outputs: {}
-      //     };
-      //     if (n.type == 'DubbyKnobs') {
-      //       block.constructorParams.push('dubby');
-      //     }
-      //     if (n.controls) {
-      //       Object.keys(n.controls).forEach(e => {
-      //         // block.constructorParams = [(n.controls[e] as any).value];
-      //         block.constructorParams.push((n.controls[e] as any).value)
-      //       });
-      //     };
-      //     blocks.push(block)
-      //   })
+      nodes = allNodes.filter(n => n.type != 'dubbyaudioout' && n.type != 'DubbyAudioIns');
 
       // building the connections
       // time to make montresor proud
-      const audioInNodeId = allBlocks.find(b => b.type == 'DubbyAudioIns')?.id ?? '-1';
+      const audioInNodeId = allNodes.find(b => b.type == 'DubbyAudioIns')?.id ?? '-1';
 
       editor.getConnections()
         .forEach(c => {
-          allBlocks
+          allNodes
             .filter(b => b.type != 'dubbyaudioout')
             .forEach(b => {
               if (c.target == b.id) {
@@ -268,14 +247,18 @@ export async function createEditor(container: HTMLElement) {
             });
         })
 
-      const outBlockIds = editor.getNodes()
+      const outNodeIds = editor.getNodes()
         .filter(n => n.type == 'dubbyaudioout').map(n => n.id);
       let outputs = {}
       editor.getConnections()
-        .filter(conn => outBlockIds.includes(conn.target))
+        .filter(conn => outNodeIds.includes(conn.target))
         .sort((a, b) => a.targetInput.localeCompare(b.targetInput))
         .forEach(conn => {
           if(Object.keys(outputs).includes(conn.targetInput)) return;
+          if (conn.source == audioInNodeId) {
+            outputs = { ...outputs, [conn.targetInput]: { sourceId: Custom.DubbyAudioInputsNode.DEFAULT_ID, sourceChannel: conn.sourceOutput } };
+            return;
+          }
           outputs = {
             ...outputs,
             [conn.targetInput]: { sourceId: conn.source, sourceChannel: conn.sourceOutput }
@@ -284,7 +267,7 @@ export async function createEditor(container: HTMLElement) {
 
       return {
         physicalOut: outputs,
-        blocks: blocks
+        nodes: nodes
       };
     },
     layout: async () => {
@@ -294,7 +277,7 @@ export async function createEditor(container: HTMLElement) {
   };
 }
 
-interface BlockDTO {
+interface NodeDto {
   type: string,
   id: string,
   constructorParams: string[],

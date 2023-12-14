@@ -2,7 +2,7 @@
 TARGET = DubbyPlayground
 
 # Sources
-CPP_SOURCES = / DubbyPlayground.cpp / ../../web-compiler/build_template/lib/DaisyDub/DspBlock.cpp / ../../web-compiler/build_template/lib/DaisyDub/Dubby.cpp
+CPP_SOURCES = / DubbyPlayground.cpp / ../../web-compiler/build_template/lib/DaisyDub/DspNode.cpp / ../../web-compiler/build_template/lib/DaisyDub/Dubby.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../web-compiler/build_template/lib/libDaisy

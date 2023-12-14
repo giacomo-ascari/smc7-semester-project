@@ -17,7 +17,7 @@ public:
     };
     ~<NameDspBlock>() = default;
     void initialize(float samplerate) override;
-    void handle() override { };
+    void process() override { };
 private:
     // Add private variables here, if needed
     // e.g., a buffer for a delay
@@ -31,7 +31,7 @@ The file is located in `web-compiler/buildtemplate/lib/DaisyDub/DspBlock.cpp`
 
 >Useful for stuff, that needs to be done once on the startup of the DaisyDub. A good example is `void ConstValue::initialize(float samplerate)` which just fills up the output buffer with the chosen value.
 
-## Implement `handle()`, if required
+## Implement `process()`, if required
 Here, all the actual processing takes place.
 
 ### Accessing input channels data
@@ -43,7 +43,7 @@ Here, all the actual processing takes place.
     -  e.g., an oscillator expects values in Hz for frequency but the "physical"output expects values between -1 and 1.
     - the consequence is: The end-user will have the responsibility of converting the values, using Multiplier, Addition, maybe Division and Substraction Blocks
 
-> Good example might be `void Multiplier::handle()`
+> Good example might be `void Multiplier::process()`
 
 ### Writing output data
 
@@ -70,9 +70,9 @@ Of course, you want to test your changes! You can do that in the Playgrounds As 
         - make sure, that `someOtherBlock` has been properly initialized (meaning the constructor here) before
     - to route input from the physical input
         - `<someName>->setInputReference(physical_ins->getChannel(n), 0);` with n being the input channel number 0-3
-5. Within `void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)` call the handle method of your block by `<someName> -> handle()`
-    - Keep in mind to call all the `handle()`-methods in the correct order
-    - If a block you want to "handle" requires input of another block, the other block needs to be called first!
+5. Within `void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)` call the process method of your block by `<someName> -> process()`
+    - Keep in mind to call all the `process()`-methods in the correct order
+    - If a block you want to "process" requires input of another block, the other block needs to be called first!
 
 > Special note: there should be only once instance of `KnobMap` per knob. If you want to route a knob to multiple Blocks, just do step 4. for every Block you want to feed with knob values
 

@@ -3,7 +3,7 @@ TARGET = Main
 
 # Sources 
 # We told it to compile everything ending with .cpp, which was just a work-around and should be changed at some point
-CPP_SOURCES = / SeedPlayground.cpp / ../../web-compiler/build_template/lib/DaisyDub/DspBlock.cpp
+CPP_SOURCES = / SeedPlayground.cpp / ../../web-compiler/build_template/lib/DaisyDub/DspNode.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../web-compiler/build_template/lib/libDaisy

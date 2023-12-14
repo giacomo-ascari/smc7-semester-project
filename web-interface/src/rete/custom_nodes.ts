@@ -6,7 +6,7 @@ export class Node extends ClassicPreset.Node {
   width = 180;
   height = 120;
   type = "node";
-  cppClassName = "DspBlock";
+  cppClassName = "DspNode";
 }
 
 export class Connection<N extends Node> extends ClassicPreset.Connection<N, N> {}

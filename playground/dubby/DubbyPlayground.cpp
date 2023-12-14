@@ -1,7 +1,7 @@
 
 #include "daisysp.h"
 #include "../../web-compiler/build_template/lib/DaisyDub/Dubby.h"
-#include "../../web-compiler/build_template/lib/DaisyDub/DspBlock.h"
+#include "../../web-compiler/build_template/lib/DaisyDub/DspNode.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -11,18 +11,18 @@ Dubby dubby;
 
 DubbyAudioIns * dubbyAudioIn;
 MultiChannelBuffer * dubbyAudioOuts;
-DspBlock * knob1;
-DspBlock * knob2;
-DspBlock * knob3;
-DspBlock * knob4;
+DspNode * knob1;
+DspNode * knob2;
+DspNode * knob3;
+DspNode * knob4;
 
-DspBlock * BPM;
-DspBlock * NoteVal;
-DspBlock * dotSwitch;
-DspBlock * noise;
-DspBlock * rhythm;
-DspBlock * lfofreq;
-DspBlock * lfo;
+DspNode * BPM;
+DspNode * NoteVal;
+DspNode * dotSwitch;
+DspNode * noise;
+DspNode * rhythm;
+DspNode * lfofreq;
+DspNode * lfo;
 
 
 
@@ -36,18 +36,18 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     }
     double sumSquared[4] = { 0.0f };
     
-    knob1->handle();
-    knob2->handle();
-    knob3->handle();
-    knob4->handle();
+    knob1->process();
+    knob2->process();
+    knob3->process();
+    knob4->process();
    
-   BPM->handle();
-   dotSwitch->handle();
-   NoteVal->handle();
-   rhythm->handle();
-   lfofreq->handle();
-   lfo->handle();
-   noise->handle();
+   BPM->process();
+   dotSwitch->process();
+   NoteVal->process();
+   rhythm->process();
+   lfofreq->process();
+   lfo->process();
+   noise->process();
 
     dubbyAudioOuts->writeChannel({0}, 0);
     dubbyAudioOuts->writeChannel(noise->getOutputChannel(0), 1);

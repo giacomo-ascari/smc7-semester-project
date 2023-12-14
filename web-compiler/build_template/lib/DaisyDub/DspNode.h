@@ -75,22 +75,22 @@ private:
     int samplesPerChannel; // Number of samples per channel
 };
 
-// Generic superclass to unify different "DspBlocks" such as oscilator, delay, compressor, ...
-class DspBlock {
+// Generic superclass to unify different "DspNodes" such as oscilator, delay, compressor, ...
+class DspNode {
 public:
-    // Constructor to initialize "every" DspBlock
-    DspBlock(int numberIns, int numberOuts, int bufferLength)
+    // Constructor to initialize "every" DspNodes
+    DspNode(int numberIns, int numberOuts, int bufferLength)
     {
         this->bufferLength = bufferLength;
         // Initialize the output Multichannel buffer
-        //  Note: How many DspBlocks will there be that have more than one output? Probably not many and the ones that are, we can probably neglect
+        //  Note: How many DspNodes will there be that have more than one output? Probably not many and the ones that are, we can probably neglect
         out = new MultiChannelBuffer(numberOuts, bufferLength);
         this->inputChannels = new float*[numberIns];
     };
-    ~DspBlock() = default;
+    ~DspNode() = default;
     // Override this function, to handle everything that needs to be only handled once at the beginning
     virtual void initialize(float samplerate) = 0;
-    virtual void handle() = 0;
+    virtual void process() = 0;
     float * getOutputChannel(int channelNumber) {
         return out->getChannel(channelNumber);
     }
@@ -116,23 +116,23 @@ protected:
  * 1 Output:
  * - channel 0: knob value (0 - 1), its read only once per block, so all samples in this channel should be equal
 */
-class KnobMap : public DspBlock {
+class KnobMap : public DspNode {
 public:
-    KnobMap(Dubby& dubby, int knobNumber, int bufferLength) : DspBlock(0, 1, bufferLength), dubby (dubby)
+    KnobMap(Dubby& dubby, int knobNumber, int bufferLength) : DspNode(0, 1, bufferLength), dubby (dubby)
     {
         this->knob = static_cast<Dubby::Ctrl>(knobNumber);
     };
     ~KnobMap() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 protected:
     Dubby::Ctrl knob;
     Dubby& dubby;
 };
 
-class DubbyKnobs : public DspBlock {
+class DubbyKnobs : public DspNode {
 public:
-    DubbyKnobs(Dubby& dubby, int bufferLength) : DspBlock(0, 4, bufferLength), dubby (dubby)
+    DubbyKnobs(Dubby& dubby, int bufferLength) : DspNode(0, 4, bufferLength), dubby (dubby)
     {
         knobs = new Dubby::Ctrl[4];
         knobs[0] = static_cast<Dubby::Ctrl>(0);
@@ -141,17 +141,17 @@ public:
         knobs[3] = static_cast<Dubby::Ctrl>(3);
     };
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 protected:
     Dubby::Ctrl * knobs;
     Dubby& dubby;
 };
 
-class DubbyAudioIns : public DspBlock {
+class DubbyAudioIns : public DspNode {
 public:
-    DubbyAudioIns(int bufferLength) : DspBlock(0, 4, bufferLength) {};
+    DubbyAudioIns(int bufferLength) : DspNode(0, 4, bufferLength) {};
     void initialize(float samplerate) override;
-    void handle() override {};
+    void process() override {};
     void writeChannel(const float * data, int channelNumber);
 
 };
@@ -164,15 +164,15 @@ public:
  * 1 Output:
  * - channel 0: 0s, when no tick is produced, 1 for every tick
 */
-class Clock : public DspBlock {
+class Clock : public DspNode {
 public:
-    Clock(int bufferLength) : DspBlock(1, 1, bufferLength)
+    Clock(int bufferLength) : DspNode(1, 1, bufferLength)
     {
         this->samplesSinceTick = 0;
     };
     ~Clock() = default;
     void initialize(float samplerate) override;
-    void handle() override;
+    void process() override;
 private:
     int samplesSinceTick;
     float samplerate;
@@ -187,12 +187,12 @@ private:
  * 1 Output:
  * - oscillator output (-1 - 1)
 */
-class Osc : public DspBlock {
+class Osc : public DspNode {
 public:
     Osc(int bufferLenth);
     ~Osc() = default;
     void initialize(float samplerate) override;
-    void handle() override;
+    void process() override;
     
 private:
     Oscillator osc;
@@ -210,12 +210,12 @@ private:
  * 1 Output:
  * - envelope output (0 - 1)
 */
-class ADSREnv : public DspBlock {
+class ADSREnv : public DspNode {
 public:
-    ADSREnv(int bufferLength) : DspBlock(4, 1, bufferLength) { };
+    ADSREnv(int bufferLength) : DspNode(4, 1, bufferLength) { };
     ~ADSREnv() = default;
     void initialize(float samplerate) override;
-    void handle() override;
+    void process() override;
     
 private:
     Adsr env;
@@ -230,16 +230,16 @@ private:
  * 1 Output:
  * - the (wet) signal
 */
-class FeedbackDelay : public DspBlock {
+class FeedbackDelay : public DspNode {
 public:
-    FeedbackDelay(int lengthSamples, int bufferLength) : DspBlock(2, 1, bufferLength) {
+    FeedbackDelay(int lengthSamples, int bufferLength) : DspNode(2, 1, bufferLength) {
         this->circBuf = new float[lengthSamples];
         this->circBufPos = 0;
         this->delayLengthSamples = lengthSamples;
     };
     ~FeedbackDelay() = default;
     void initialize(float samplerate) override;
-    void handle() override;
+    void process() override;
 private:
     float * circBuf;
     int circBufPos;
@@ -250,20 +250,20 @@ private:
  * Block to store a constant value.
  * Assing the constant value using the constructor.
  * Use it's initialize method!
- * The handle method, does not need to be called.
+ * The process method, does not need to be called.
  * 0 Inputs
  * 1 Outpus:
  * - a buffer consisting of the same constant value, everytime.
 */
-class ConstValue : public DspBlock {
+class ConstValue : public DspNode {
 public:
-    // Constructor that automatically initializes DspBlock with a fixed inputVector and one channel
-    ConstValue(float value, int bufferLength) : DspBlock(0, 1, bufferLength) {
+    // Constructor that automatically initializes DspNode with a fixed inputVector and one channel
+    ConstValue(float value, int bufferLength) : DspNode(0, 1, bufferLength) {
         this->val = value;
     };
     ~ConstValue() = default;
     void initialize(float samplerate) override;
-    void handle() override { };
+    void process() override { };
 private:
     float val;
 };
@@ -284,15 +284,15 @@ private:
  * 1 output:
  * - the result of the multiplication
 */
-class NMultiplier : public DspBlock {
+class NMultiplier : public DspNode {
 public:
-    NMultiplier(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    NMultiplier(int numInputs, int bufferLength) : DspNode(numInputs, 1, bufferLength)
     {
         this->numInputs = numInputs;
     };
     ~NMultiplier() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 private:
     int numInputs;
 };
@@ -300,15 +300,15 @@ private:
 
 //-----Summation----//
 //Add n diferent channel input values and outputs the result
-class Sum : public DspBlock {
+class Sum : public DspNode {
 public:
-    Sum(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    Sum(int numInputs, int bufferLength) : DspNode(numInputs, 1, bufferLength)
     {
         this->numInputs = numInputs;
     };
     ~Sum() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 private:
     int numInputs;
 };
@@ -316,15 +316,15 @@ private:
 
 //---Subtraction----/
 //Subtract n diferent channel input values and outputs the result
-class Sub : public DspBlock {
+class Sub : public DspNode {
 public:
-    Sub(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    Sub(int numInputs, int bufferLength) : DspNode(numInputs, 1, bufferLength)
     {
         this->numInputs = numInputs;
     };
     ~Sub() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 private:
     int numInputs;
 };
@@ -332,23 +332,23 @@ private:
 
 //---Division----//
 //Divides n diferent channel input values and outputs the result
-class Div : public DspBlock {
+class Div : public DspNode {
 public:
-    Div(int numInputs, int bufferLength) : DspBlock(numInputs, 1, bufferLength)
+    Div(int numInputs, int bufferLength) : DspNode(numInputs, 1, bufferLength)
     {
         this->numInputs = numInputs;
     };
     ~Div() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 private:
     int numInputs;
 };
 
 
-class Scaler : public DspBlock {
+class Scaler : public DspNode {
 public:
-Scaler(float inMin, float inMax, float outMin, float outMax, int bufferLength) : DspBlock(1, 1, bufferLength)
+Scaler(float inMin, float inMax, float outMin, float outMax, int bufferLength) : DspNode(1, 1, bufferLength)
 {
 this->inMin = inMin;
 this->inMax = inMax;
@@ -357,7 +357,7 @@ this->outMax = outMax;
 };
 ~Scaler() = default;
 void initialize(float samplerate) override{};
-void handle() override;
+void process() override;
 
 private:
 float inMin, inMax, outMin, outMax;
@@ -378,35 +378,35 @@ float inMin, inMax, outMin, outMax;
  * 1 output:
  * - the absolute / unipolar signal
 */
-class Unipolariser : public DspBlock {
+class Unipolariser : public DspNode {
     public:
-    Unipolariser(int bufferLength) : DspBlock(1, 1, bufferLength) {};
+    Unipolariser(int bufferLength) : DspNode(1, 1, bufferLength) {};
     ~Unipolariser() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 };
 
-class VolumeControl : public DspBlock {
+class VolumeControl : public DspNode {
     public:
-    VolumeControl(int bufferLength) : DspBlock(2 ,1 , bufferLength){};
+    VolumeControl(int bufferLength) : DspNode(2 ,1 , bufferLength){};
    
     ~VolumeControl() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 
 
 };
 
-class Mix : public DspBlock {
+class Mix : public DspNode {
     public:
-    Mix(int numInputs, int numOutputs, int bufferLength) : DspBlock(numInputs, numOutputs, bufferLength)
+    Mix(int numInputs, int numOutputs, int bufferLength) : DspNode(numInputs, numOutputs, bufferLength)
     {
         this->numInputs = numInputs;
         this->numOutputs = numOutputs;
     }
     ~Mix() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
 
     private:
     int numInputs;
@@ -417,12 +417,12 @@ class Mix : public DspBlock {
 //  ------- white noise generator-------
 // This 
 
-class NoiseGen : public DspBlock {
+class NoiseGen : public DspNode {
 public:
     NoiseGen(int bufferLenth);
     ~NoiseGen() = default;
     void initialize(float samplerate) override {};
-    void handle() override;
+    void process() override;
     
 
 };
@@ -433,12 +433,12 @@ public:
 // then the block converts the musical time into time in samples depending on BPM
 // Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
 // Dotted Off = 0; Dotted On = 1;
-class MusicalTime : public DspBlock {
+class MusicalTime : public DspNode {
 public:
-    MusicalTime(int bufferlength) : DspBlock(3,1,bufferlength){};
+    MusicalTime(int bufferlength) : DspNode(3,1,bufferlength){};
     ~MusicalTime() = default;
     void initialize(float samplerate) override{};
-    void handle()override;
+    void process()override;
 
 }; 
 
@@ -447,12 +447,12 @@ public:
 //Example: if we want to modulate a block with a specific musical time (quarters) we have to convert
 //the samples that MusicalTime block provides to HZ that oscilator can handle. So, that what this block does.
 
-class StoF : public DspBlock {
+class StoF : public DspNode {
 public:
-    StoF(int bufferlength) : DspBlock(1,1,bufferlength){};
+    StoF(int bufferlength) : DspNode(1,1,bufferlength){};
     ~StoF() = default;
     void initialize(float samplerate) override{};
-    void handle() override;
+    void process() override;
 
 };
 
@@ -460,12 +460,12 @@ public:
 
 //bandPass
 
-class BPF : public DspBlock {
+class BPF : public DspNode {
 public:
-    BPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    BPF(int bufferLength) : DspNode(3, 1, bufferLength){};
     ~BPF() = default;
     void initialize(float samplerate) override{}; 
-    void handle() override;    
+    void process() override;    
 
 private:
 float cirBuffin[4];
@@ -474,12 +474,12 @@ float cirBuffout[4];
 
 //------Low Pass Filter----
 
-class LPF : public DspBlock {
+class LPF : public DspNode {
 public:
-    LPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    LPF(int bufferLength) : DspNode(3, 1, bufferLength){};
     ~LPF() = default;
     void initialize(float samplerate) override{}; 
-    void handle() override;    
+    void process() override;    
 
 private:
 float cirBuffin[4];
@@ -489,12 +489,12 @@ float cirBuffout[4];
 
 //-------High Pass Filter HPF-------
 
-class HPF : public DspBlock {
+class HPF : public DspNode {
 public:
-    HPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
+    HPF(int bufferLength) : DspNode(3, 1, bufferLength){};
     ~HPF() = default;
     void initialize(float samplerate) override{}; 
-    void handle() override;    
+    void process() override;    
 
 private:
 float cirBuffin[4];

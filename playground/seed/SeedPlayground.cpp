@@ -1,6 +1,6 @@
 #include "daisy_seed.h"
 #include "daisysp.h"
-#include "../../web-compiler/build_template/lib/DaisyDub/DspBlock.h"
+#include "../../web-compiler/build_template/lib/DaisyDub/DspNode.h"
 
 // Use the daisy namespace to prevent having to type
 // daisy:: before all libdaisy functions
@@ -9,22 +9,22 @@ using namespace daisysp;
 
 // Declare a DaisySeed object called hardware
 DaisySeed  hardware;
-// Declare the DspBlocks we want to use later
-DspBlock* oscillator;
-DspBlock* freqLfo;
-DspBlock* ampLfo;
+// Declare the DspNodes we want to use later
+DspNode* oscillator;
+DspNode* freqLfo;
+DspNode* ampLfo;
 
 void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
                    AudioHandle::InterleavingOutputBuffer out,
                    size_t                                size)
 {
-    // Calling the handle method of each dsp block
+    // Calling the process method of each dsp node
     //  Note: As oscillator depends on the output of lfo, lfo needs to be called first
-    //  Note_2: ConstValue->handle(); does not need to be called - well, because the value stays constant ^^
-    // lfo->handle();
-    oscillator->handle();
+    //  Note_2: ConstValue->process(); does not need to be called - well, because the value stays constant ^^
+    // lfo->process();
+    oscillator->process();
     
-    // Set the "final" pointer to the "last" dspBlock, meaning the DspBlock that is directly connected to the output, visually speaking
+    // Set the "final" pointer to the "last" dspNode, meaning the DspNode that is directly connected to the output, visually speaking
     // float * oscOut = oscillator->getOutputChannel(0);
     float * osc_out = oscillator->getOutputChannel(0);
     int k = 0;
@@ -51,13 +51,13 @@ int main(void)
     //How many samples we'll output per second
     float samplerate = hardware.AudioSampleRate();
 
-    // Initialize two "ConstBlocks" as input for the lfo osc
+    // Initialize two "ConstNodes" as input for the lfo osc
     freqLfo = new ConstValue(1000, 4);
     freqLfo->initialize(samplerate);
     ampLfo = new ConstValue(1, 4);
     ampLfo->initialize(samplerate);
 
-    // // Create an instance of OscBlock with the aforementioned vector as input
+    // // Create an instance of OscNode with the aforementioned vector as input
     // lfo = new Osc(4);
     // lfo->initialize(samplerate);
     // lfo->setInputReference(freqLfo->getOutputChannel(0), 0);

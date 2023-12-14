@@ -72,7 +72,7 @@ function App() {
           }}>Flash!</Button>
 
           <Button onClick={() => { 
-            // testWithoutFlash(editor);
+            testWithoutFlash(editor);
             alert("function not implemented yet!")
           }}>❔</Button>
 

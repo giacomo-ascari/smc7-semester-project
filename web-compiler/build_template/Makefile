@@ -2,7 +2,7 @@
 TARGET = Main
 
 # Sources
-CPP_SOURCES = Main.cpp / lib/DaisyDub/DspBlock.cpp / lib/DaisyDub/Dubby.cpp
+CPP_SOURCES = Main.cpp / lib/DaisyDub/DspNode.cpp / lib/DaisyDub/Dubby.cpp
 
 # Library Locations
 LIBDAISY_DIR = lib/libDaisy

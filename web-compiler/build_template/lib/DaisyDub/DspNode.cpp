@@ -1,11 +1,11 @@
-#include "DspBlock.h"
+#include "DspNode.h"
 
 void Clock::initialize(float samplerate)
 {
         this->samplerate = samplerate;
 }
 
-void Clock::handle()
+void Clock::process()
 {
         float freqHz = getInputReference(0)[0];
         if (freqHz == 0)
@@ -33,7 +33,7 @@ void Clock::handle()
         samplesSinceTick = samplesSinceTick % periodSamples;
 }
 
-Osc::Osc(int bufferLenth) : Osc::DspBlock(1, 1, bufferLenth){};
+Osc::Osc(int bufferLenth) : Osc::DspNode(1, 1, bufferLenth){};
 
 // Initializes the DaisySp::Oscillator with some default values
 void Osc::initialize(float samplerate)
@@ -44,7 +44,7 @@ void Osc::initialize(float samplerate)
         osc.SetFreq(800);
 }
 
-void Osc::handle()
+void Osc::process()
 {
         // Read the input frequency buffer
         float *freqIn = getInputReference(0);
@@ -66,7 +66,7 @@ void ADSREnv::initialize(float samplerate)
         env.Init(samplerate);
 }
 
-void ADSREnv::handle()
+void ADSREnv::process()
 {
         float *trigger = getInputReference(0);
         float attack = abs(getInputReference(1)[0]);
@@ -97,7 +97,7 @@ void FeedbackDelay::initialize(float samplerate)
         }
 }
 
-void FeedbackDelay::handle()
+void FeedbackDelay::process()
 {
         float *audioIn = getInputReference(0);
         float *ampDelay = getInputReference(1);
@@ -112,7 +112,7 @@ void FeedbackDelay::handle()
         circBufPos = (circBufPos + bufferLength) % delayLengthSamples;
 }
 
-void KnobMap::handle()
+void KnobMap::process()
 {
         float val = dubby.GetKnobValue(knob);
         for (int i = 0; i < bufferLength; i++)
@@ -121,7 +121,7 @@ void KnobMap::handle()
         }
 }
 
-void DubbyKnobs::handle()
+void DubbyKnobs::process()
 {
         for (int k = 0; k < 4; k++)
         {
@@ -162,7 +162,7 @@ void ConstValue::initialize(float samplerate)
 
 //----Multiplier----//
 // Multiplies n diferent channel input values and outputs the result
-void NMultiplier::handle()
+void NMultiplier::process()
 {
         for (int i = 0; i < bufferLength; i++)
         {
@@ -177,7 +177,7 @@ void NMultiplier::handle()
 
 //-----Summation----//
 // Add n diferent channel input values and outputs the result
-void Sum::handle()
+void Sum::process()
 {
         for (int i = 0; i < bufferLength; i++)
         {
@@ -191,7 +191,7 @@ void Sum::handle()
 }
 //---Subtraction----/
 // Subtract n diferent channel input values and outputs the result
-void Sub::handle()
+void Sub::process()
 {
         for (int i = 0; i < bufferLength; i++)
         {
@@ -207,7 +207,7 @@ void Sub::handle()
 //---Division----//
 // Divides n diferent channel input values and outputs the result
 
-void Div::handle()
+void Div::process()
 {
         for (int i = 0; i < bufferLength; i++)
         {
@@ -220,7 +220,7 @@ void Div::handle()
         }
 }
 
-void Scaler::handle()
+void Scaler::process()
 {
         float oldRange = inMax - inMin;
         float newRange = outMax - outMin;
@@ -237,7 +237,7 @@ void Scaler::handle()
 
 //---------------------------- END OF MATH OPERATORS --------------------------//
 
-void Unipolariser::handle()
+void Unipolariser::process()
 {
         float *in = getInputReference(0);
 
@@ -249,7 +249,7 @@ void Unipolariser::handle()
 
 //--------Volume Controller----------//
 
-void VolumeControl::handle()
+void VolumeControl::process()
 {
         float *amp = getInputReference(0);
         float in = 0;
@@ -265,7 +265,7 @@ void VolumeControl::handle()
 
 //--------Mixer----------//
 
-void Mix::handle()
+void Mix::process()
 {
         float in = 0;
         for (int sample = 0; sample < bufferLength; sample++)
@@ -289,9 +289,9 @@ void Mix::handle()
 #include <cstdlib>
 #include <ctime>
 
-NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspBlock(1, 1, bufferLenth){};
+NoiseGen::NoiseGen(int bufferLenth) : NoiseGen::DspNode(1, 1, bufferLenth){};
 
-void NoiseGen::handle()
+void NoiseGen::process()
 {
 
         float *amp = getInputReference(0);
@@ -310,12 +310,12 @@ void NoiseGen::handle()
 
 //--------BPM related time signature to samples converter------//
 // the user insert BPM , Note value , and dotted (if it is preferred)
-// then the block converts the musical time into time in samples depending on BPM
+// then the node converts the musical time into time in samples depending on BPM
 // Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
 // Dotted Off = 0; Dotted On = 1;
 #include <cmath>
 
-void MusicalTime::handle()
+void MusicalTime::process()
 {
 
         int fs = 48000;
@@ -346,7 +346,7 @@ void MusicalTime::handle()
         }
 }
 
-void StoF::handle()
+void StoF::process()
 {
         float *tsamples = getInputReference(0); // Time in samples (input)
         float tHz;                              // time in HZ (output)
@@ -363,7 +363,7 @@ void StoF::handle()
 
 // Band Pass Filter
 
-void BPF::handle()
+void BPF::process()
 {
         float *in = getInputReference(0);
         float *Fc = getInputReference(1);
@@ -401,7 +401,7 @@ void BPF::handle()
 
 //-----LPF----
 
-void LPF::handle()
+void LPF::process()
 {
         float *in = getInputReference(0);
         float *Fc = getInputReference(1);
@@ -439,7 +439,7 @@ void LPF::handle()
 
 //----High Pass Filter HPF-----
 
-void HPF::handle()
+void HPF::process()
 {
         float *in = getInputReference(0);
         float *Fc = getInputReference(1);
