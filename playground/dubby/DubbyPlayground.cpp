@@ -3,8 +3,6 @@
 #include "../../web-compiler/build_template/lib/DaisyDub/Dubby.h"
 #include "../../web-compiler/build_template/lib/DaisyDub/DspBlock.h"
 
-
-
 using namespace daisy;
 using namespace daisysp;
 using namespace dspblock;
@@ -69,7 +67,7 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
     dubbyAudioOuts->writeChannel({0}, 0);
     dubbyAudioOuts->writeChannel(noise->getOutputChannel(0), 1);
 
-    float * oscOut = demoCompressor ->getOutputChannel(0);
+    float * oscOut = compressor ->getOutputChannel(0);
 	
     for (size_t i = 0; i < size; i++)
 	{
