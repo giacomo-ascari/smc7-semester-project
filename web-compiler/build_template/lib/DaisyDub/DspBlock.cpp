@@ -320,45 +320,8 @@ void dspblock::Compressor::initialize(float samplerate) {
     compressor.SetRelease(0.001f); 
 }
 
-
 void dspblock::Compressor::handle() {
     float *input = getInputReference(0);
     compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
 
-/* --------MultiBand Compressor---------------*/
-void dspblock::Compressor::Intitialize(float samplerarte)
-
-
-
-
-
-
-void KnobMap::handle() {
-    float val = dubby.GetKnobValue(knob);
-    switch (knob) {
-        case Dubby::Ctrl::CTRL_1:
-            compressor.SetAttack(val); // Assuming val ranges between 0 and 1
-            break;
-        case Dubby::Ctrl::CTRL_2:
-            compressor.SetRelease(val);
-            break;
-        case Dubby::Ctrl::CTRL_3:
-            compressor.SetRatio(val);
-            break;
-        case Dubby::Ctrl::CTRL_4:
-            compressor.SetThreshold(val);
-            break;
-        // Add more cases for other controls if needed
-    }
-    // Write the knob value to output
-    for (int i = 0; i < bufferLength; i++) {
-        out->writeSample(val, i, 0);
-    }
-
-void dspblock::LPF::initialize(float samplerate) {}
-
-
-
-
-}

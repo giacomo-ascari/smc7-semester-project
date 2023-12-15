@@ -535,4 +535,3 @@ namespace dspblock
     private:
         daisysp::Compressor compressor;
     };
-};
