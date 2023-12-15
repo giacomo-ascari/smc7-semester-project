@@ -8,6 +8,7 @@ static float * EMPTY_BUFFER;
 
 using namespace daisy;
 using namespace daisysp;
+using namespace dspblock;
 
 Dubby dubby;
 
