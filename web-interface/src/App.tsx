@@ -22,7 +22,7 @@ const Button = styled.button`
   background-color: #DF313C;
   color: white;
   padding: 0.5em 0.5em;
-  margin: 0.5em 0.5em;
+  margin: 0em 0.5em;
   border-radius: 0.5em;
   border-style: hidden;
   cursor: pointer;
@@ -48,8 +48,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" style={{ width: 120, height: 120, marginTop: '0.5em', animation: 'none' }} />
-        <h1>Dubby web programmer</h1>
+        <img src={logo} className="App-logo" alt="logo" style={{ width: 100, height: 100, marginTop: '0.5em', animation: 'none' }} />
+        <h1 style={{marginBottom: '0em'}}>Dubby web programmer</h1>
         <p>Visual programming tool developed for Dubby, by Componental</p>
         
         <ActionsStyle>

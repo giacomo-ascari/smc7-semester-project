@@ -525,7 +525,7 @@ namespace dspblock
     class Compressor : public DspBlock
     {
     public:
-        Compressor(int bufferLength) : DspBlock(2, 2, bufferLength){};
+        Compressor(int bufferLength) : DspBlock(5, 1, bufferLength){};
         ~Compressor() = default;
 
         void initialize(float samplerate) override;
@@ -534,3 +534,4 @@ namespace dspblock
     private:
         daisysp::Compressor compressor;
     };
+};

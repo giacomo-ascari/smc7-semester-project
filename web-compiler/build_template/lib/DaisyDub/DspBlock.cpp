@@ -365,14 +365,27 @@ void NoiseGen::handle()
 /* --------Compressor---------------*/
 void dspblock::Compressor::initialize(float samplerate) {
     compressor.Init(samplerate);
-    compressor.SetThreshold(-10.0f);
-    compressor.SetRatio(40.0f);
-    compressor.SetAttack(0.02f);
-    compressor.SetRelease(0.001f); 
 }
 
 void dspblock::Compressor::handle() {
     float *input = getInputReference(0);
+
+    // get first sample for thr, ratio, attack and release only from the sample buffer
+    float thr = getInputReference(1)[0];
+    float ratio = getInputReference(2)[0];
+    float attack = getInputReference(3)[0];
+    float release = getInputReference(4)[0];
+
+    if (thr > 0.f) thr = 0.f; else if (thr < -80.f) thr = -80.f;
+    if (ratio > 40.f) ratio = 40.f; else if (ratio < 1.f) ratio = 1.f;
+    if (attack > 10.f) attack = 10.f; else if (attack < 0.001f) attack = 0.001f;
+    if (release > 10.f) release = 10.f; else if (release < 0.001f) release = 0.001f;
+
+    compressor.SetThreshold(thr);
+    compressor.SetRatio(ratio);
+    compressor.SetAttack(attack);
+    compressor.SetRelease(release);
+
     compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
 
