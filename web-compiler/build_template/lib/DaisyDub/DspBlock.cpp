@@ -398,7 +398,7 @@ void BPF::handle()
         for (int sample = 0; sample < bufferLength; sample++)
         {       
                 float Q = q[sample];
-                if (Q > 5) Q = 5;
+                if (Q > 10) Q = 10;
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
@@ -458,7 +458,7 @@ void LPF::handle()
         for (int sample = 0; sample < bufferLength; sample++)
         {       
                 float Q = q[sample];
-                if (Q > 5) Q = 5;
+                if (Q > 10) Q = 10;
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
@@ -517,7 +517,7 @@ void HPF::handle()
         for (int sample = 0; sample < bufferLength; sample++)
         {       
                 float Q = q[sample];
-                if (Q > 5) Q = 5;
+                if (Q > 10) Q = 10;
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
