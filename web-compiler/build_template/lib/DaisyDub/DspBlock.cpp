@@ -226,14 +226,14 @@ void Scaler::handle()
 {
         float oldRange = inMax - inMin;
         float newRange = outMax - outMin;
-        float *newValue;
+        float newValue;
 
         for (int sample = 0; sample < bufferLength; sample++)
         {
 
-                newValue[sample] = (((getInputReference(0)[sample] - inMin) * newRange) / oldRange) + outMin;
+                newValue = (((getInputReference(0)[sample] - inMin) * newRange) / oldRange) + outMin;
 
-                out->writeSample(newValue[sample], sample, 0);
+                out->writeSample(newValue, sample, 0);
         }
 }
 
