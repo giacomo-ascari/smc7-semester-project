@@ -231,7 +231,7 @@ void Scaler::handle()
         for (int sample = 0; sample < bufferLength; sample++)
         {
 
-                newValue[sample] = ((getInputReference(0)[sample] - inMin) * newRange / oldRange) + outMin;
+                newValue[sample] = (((getInputReference(0)[sample] - inMin) * newRange) / oldRange) + outMin;
 
                 out->writeSample(newValue[sample], sample, 0);
         }
@@ -287,6 +287,57 @@ void Mix::handle()
         }
 }
 
+//--------BPM related time signature to samples converter------//
+// the user insert BPM , Note value , and dotted (if it is preferred)
+// then the block converts the musical time into time in samples depending on BPM
+// Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
+// Dotted Off = 0; Dotted On = 1;
+#include <cmath>
+
+void MusicalTime::handle()
+{
+
+        int fs = 48000;
+        float *bpm = getInputReference(0);
+        float *notevalue = getInputReference(1);
+        float *dotted = getInputReference(2);
+        float delayInsamples;
+        for (int sample = 0; sample < bufferLength; sample++)
+        {
+                
+                if (dotted[sample] == 1)
+                {
+                        dotted[sample] = 0.5 * notevalue[sample];
+                }
+                else if (dotted[sample] == 0)
+                       { dotted[sample] = 0; }
+
+                if (bpm[sample] > 0)
+                {
+                        bpm[sample] = bpm[sample];
+                }
+
+                delayInsamples = round((60 / bpm[sample]) * fs * (notevalue[sample] + dotted[sample]));
+
+                out->writeSample(delayInsamples, sample, 0);
+        }
+}
+
+void StoF::handle()
+{
+        float *tsamples = getInputReference(0); // Time in samples (input)
+        float tHz;                              // time in HZ (output)
+        int fs = 48000;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        { 
+                tHz = (fs / tsamples[sample]) / 2 ;
+                out->writeSample(tHz, sample, 0);
+        }
+}
+
+
+
 //------------ White noise generator-----------
 #include <cstdlib>
 #include <ctime>
@@ -327,38 +378,163 @@ void dspblock::Compressor::handle() {
 }
 
 /* --------MultiBand Compressor---------------*/
-void dspblock::Compressor::Intitialize(float samplerarte)
 
 
+//----fliter----
+
+// Band Pass Filter
+
+void BPF::handle()
+{       
+        float * in = getInputReference(0);
+        float * Fc = getInputReference(1);
+        float * Q = getInputReference(2); 
+        
+        
+        float w0=0, cosw = 0, sinw = 0, alpha = 0;
+        
+        float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
+        float fltOut=0;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {       
+                cirBuffin[sample%4] = in[sample];
+                
+
+                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                cosw = cos(w0);
+                sinw = sin(w0);
+                alpha = sinw / (2 * Q[sample]);
+                
+                b_0 = alpha;
+                b_1 = 0;
+                b_2 = -alpha;
+                
+                a_0 = 1 + alpha;
+                a_1 = -2 * cosw;
+                a_2 = 1 - alpha;
+
+                B0 = b_0/a_0;
+                B1 = b_1/a_0;
+                B2 = b_2/a_0;
+                A1 = a_1/a_0;
+                A2 = a_2/a_0;
+                
+                float n_1 = cirBuffin[(4+sample-1)%4];
+                float n_2 = cirBuffin[(4+sample-2)%4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2) % 4];
+
+                fltOut = in[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
+
+                cirBuffout[sample%4] = fltOut;
+
+                out->writeSample(fltOut, sample , 0);
+
+        }
+}
 
 
+//-----LPF----
+
+void LPF::handle()
+{       
+        float * in = getInputReference(0);
+        float * Fc = getInputReference(1);
+        float * Q = getInputReference(2); 
+        
 
 
-void KnobMap::handle() {
-    float val = dubby.GetKnobValue(knob);
-    switch (knob) {
-        case Dubby::Ctrl::CTRL_1:
-            compressor.SetAttack(val); // Assuming val ranges between 0 and 1
-            break;
-        case Dubby::Ctrl::CTRL_2:
-            compressor.SetRelease(val);
-            break;
-        case Dubby::Ctrl::CTRL_3:
-            compressor.SetRatio(val);
-            break;
-        case Dubby::Ctrl::CTRL_4:
-            compressor.SetThreshold(val);
-            break;
-        // Add more cases for other controls if needed
-    }
-    // Write the knob value to output
-    for (int i = 0; i < bufferLength; i++) {
-        out->writeSample(val, i, 0);
-    }
+        float w0=0, cosw = 0, sinw = 0, alpha = 0;
+        
+        float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
+        float fltOut=0;
 
-void dspblock::LPF::initialize(float samplerate) {}
+        for (int sample = 0; sample < bufferLength; sample++)
+        {       
+                cirBuffin[sample%4] = in[sample];
+                
 
+                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                cosw = cos(w0);
+                sinw = sin(w0);
+                alpha = sinw / (2 * Q[sample]);
+                
+                b_0 = 1 * ((1 - cosw) / 2);
+                b_1 = 1 * (1 - cosw);
+                b_2 = 1 * ((1 - cosw)/ 2);
+                
+                a_0 = 1 + alpha;
+                a_1 = -2 * cosw;
+                a_2 = 1 - alpha;
 
+                B0 = b_0/a_0;
+                B1 = b_1/a_0;
+                B2 = b_2/a_0;
+                A1 = a_1/a_0;
+                A2 = a_2/a_0;
+                
+                float n_1 = cirBuffin[(4+sample-1)%4];
+                float n_2 = cirBuffin[(4+sample-2)%4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2) % 4];
 
+                fltOut = in[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
 
+                cirBuffout[sample%4] = fltOut;
+
+                out->writeSample(fltOut, sample , 0);
+
+        }
+}
+
+//----High Pass Filter HPF-----
+
+void HPF::handle()
+{       
+        float * in = getInputReference(0);
+        float * Fc = getInputReference(1);
+        float * Q = getInputReference(2); 
+        
+       float w0=0, cosw = 0, sinw = 0, alpha = 0;
+        
+        float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
+        float fltOut=0;
+
+        for (int sample = 0; sample < bufferLength; sample++)
+        {       
+                cirBuffin[sample%4] = in[sample];
+                
+
+                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                cosw = cos(w0);
+                sinw = sin(w0);
+                alpha = sinw / (2 * Q[sample]);
+                
+                b_0 = 1 * ((1 + cosw) / 2);
+                b_1 = 1 * (-(1 + cosw));
+                b_2 = 1 * ((1 + cosw)/ 2);
+                
+                a_0 = 1 + alpha;
+                a_1 = -2 * cosw;
+                a_2 = 1 - alpha;
+
+                B0 = b_0/a_0;
+                B1 = b_1/a_0;
+                B2 = b_2/a_0;
+                A1 = a_1/a_0;
+                A2 = a_2/a_0;
+                
+                float n_1 = cirBuffin[(4+sample-1)%4];
+                float n_2 = cirBuffin[(4+sample-2)%4];
+                float yn_1 = cirBuffout[(4 + sample - 1) % 4];
+                float yn_2 = cirBuffout[(4 + sample - 2) % 4];
+
+                fltOut = in[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
+
+                cirBuffout[sample%4] = fltOut;
+
+                out->writeSample(fltOut, sample , 0);
+
+        }
 }
