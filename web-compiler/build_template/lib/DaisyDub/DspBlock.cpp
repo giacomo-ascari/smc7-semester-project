@@ -399,8 +399,8 @@ void dspblock::Compressor::handle() {
 void BPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
         
         
         float w0=0, cosw = 0, sinw = 0, alpha = 0;
@@ -410,13 +410,21 @@ void BPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+                
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = alpha;
                 b_1 = 0;
@@ -452,11 +460,9 @@ void BPF::handle()
 void LPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
-        
-
-
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
+              
         float w0=0, cosw = 0, sinw = 0, alpha = 0;
         
         float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
@@ -464,13 +470,21 @@ void LPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = 1 * ((1 - cosw) / 2);
                 b_1 = 1 * (1 - cosw);
@@ -505,8 +519,8 @@ void LPF::handle()
 void HPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
         
        float w0=0, cosw = 0, sinw = 0, alpha = 0;
         
@@ -515,13 +529,22 @@ void HPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+
+
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = 1 * ((1 + cosw) / 2);
                 b_1 = 1 * (-(1 + cosw));
