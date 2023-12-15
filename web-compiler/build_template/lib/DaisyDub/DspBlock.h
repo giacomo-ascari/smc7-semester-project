@@ -451,76 +451,75 @@ namespace dspblock
     // then the block converts the musical time into time in samples depending on BPM
     // Half Note = 2, Quarter Note = 1, Eigth Note = 0.5, Sixteenth Note = 0.25;
     // Dotted Off = 0; Dotted On = 1;
-    class MusicalTime : public DspBlock
-    {
+    class MusicalTime : public DspBlock {
     public:
-        MusicalTime(int bufferlength) : DspBlock(3, 1, bufferlength){};
+        MusicalTime(int bufferlength) : DspBlock(3,1,bufferlength){};
         ~MusicalTime() = default;
         void initialize(float samplerate) override{};
-        void handle() override;
-    };
+        void handle()override;
+
+    }; 
 
     //----- Time in samples to HZ converter--------//
     // This block takes time in samples and outputs the frequency that is related to samples
-    // Example: if we want to modulate a block with a specific musical time (quarters) we have to convert
-    // the samples that MusicalTime block provides to HZ that oscilator can handle. So, that what this block does.
+    //Example: if we want to modulate a block with a specific musical time (quarters) we have to convert
+    //the samples that MusicalTime block provides to HZ that oscilator can handle. So, that what this block does.
 
-    class StoF : public DspBlock
-    {
+    class StoF : public DspBlock {
     public:
-        StoF(int bufferlength) : DspBlock(1, 1, bufferlength){};
+        StoF(int bufferlength) : DspBlock(1,1,bufferlength){};
         ~StoF() = default;
         void initialize(float samplerate) override{};
         void handle() override;
+
     };
 
     //------------Filters--------
 
-    // bandPass
+    //bandPass
 
-    class BPF : public DspBlock
-    {
+    class BPF : public DspBlock {
     public:
         BPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
         ~BPF() = default;
-        void initialize(float samplerate) override{};
-        void handle() override;
+        void initialize(float samplerate) override{}; 
+        void handle() override;    
 
     private:
-        float cirBuffin[4];
-        float cirBuffout[4];
+    float cirBuffin[4];
+    float cirBuffout[4];
     };
 
     //------Low Pass Filter----
 
-    class LPF : public DspBlock
-    {
+    class LPF : public DspBlock {
     public:
         LPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
         ~LPF() = default;
-        void initialize(float samplerate) override{};
-        void handle() override;
+        void initialize(float samplerate) override{}; 
+        void handle() override;    
 
     private:
-        float cirBuffin[4];
-        float cirBuffout[4];
+    float cirBuffin[4];
+    float cirBuffout[4];
+
     };
+
 
     //-------High Pass Filter HPF-------
 
-    class HPF : public DspBlock
-    {
+    class HPF : public DspBlock {
     public:
         HPF(int bufferLength) : DspBlock(3, 1, bufferLength){};
         ~HPF() = default;
-        void initialize(float samplerate) override{};
-        void handle() override;
+        void initialize(float samplerate) override{}; 
+        void handle() override;    
 
     private:
-        float cirBuffin[4];
-        float cirBuffout[4];
+    float cirBuffin[4];
+    float cirBuffout[4];
     };
-
+    
     /* --------Compressor---------------*/
 
     class Compressor : public DspBlock
