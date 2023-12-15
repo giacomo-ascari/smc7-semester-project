@@ -415,7 +415,7 @@ void BPF::handle()
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
-                if (Fc < 20) fc = 20;
+                if (Fc < 20) Fc = 20;
                 else if (Fc > 20000) Fc = 20000;
                 
                 cirBuffin[sample%4] = in[sample];
@@ -475,7 +475,7 @@ void LPF::handle()
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
-                if (Fc < 20) fc = 20;
+                if (Fc < 20) Fc = 20;
                 else if (Fc > 20000) Fc = 20000;
 
                 cirBuffin[sample%4] = in[sample];
@@ -534,7 +534,7 @@ void HPF::handle()
                 else if (Q < 0.7) Q = 0.7;
 
                 float Fc = fc[sample];
-                if (Fc < 20) fc = 20;
+                if (Fc < 20) Fc = 20;
                 else if (Fc > 20000) Fc = 20000;
 
 
