@@ -520,6 +520,31 @@ namespace dspblock
     float cirBuffout[4];
     };
     
+    /* --------MultiBand Compressor---------------*/
+class MBCompressor : public DspBlock {
+public:
+    MBCompressor(int bufferLength) : DspBlock(7, 1, bufferLength){};
+    ~MBCompressor() = default;
+
+    void initialize(float samplerate) override;
+    void handle() override;
+
+private:
+    // Defining 3 bands for filter and comp
+    // LPF lpf_band1;
+    // BPF bpf_band2;
+    // HPF hpf_band3;
+    daisysp::Compressor comp_band1, comp_band2, comp_band3;
+    float cirBuffin1[4];
+    float cirBuffin2[4];
+    float cirBuffin3[4];
+    float cirBuffout1[4];
+    float cirBuffout2[4];
+    float cirBuffout3[4];
+};
+
+
+
     /* --------Compressor---------------*/
 
     class Compressor : public DspBlock
