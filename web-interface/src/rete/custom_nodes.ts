@@ -214,4 +214,34 @@ export class FilterNode extends Node {
   }
 }
 
+export class ScalerNode extends Node {
+  width = 180;
+  height = 280;
+  type = "Scaler";
+  constructor() {
+    super('Scaler');
+    this.addInput('0', new ClassicPreset.Input(socket, 'In'));
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Result'));
+    this.addControl('0', new ClassicPreset.InputControl('number', {initial: 0, readonly: false}))
+    this.addControl('1', new ClassicPreset.InputControl('number', {initial: 1, readonly: false}))
+    this.addControl('2', new ClassicPreset.InputControl('number', {initial: 0, readonly: false}))
+    this.addControl('3', new ClassicPreset.InputControl('number', {initial: 10, readonly: false}))
+  }
+}
+
+export class CompressorNode extends Node {
+  width = 180;
+  height = 260;
+  type = "dspblock::Compressor";
+  constructor() {
+    super('Compressor');
+    this.addInput('0', new ClassicPreset.Input(socket, 'In'));
+    this.addInput('1', new ClassicPreset.Input(socket, 'Threshold [dB]'));
+    this.addInput('2', new ClassicPreset.Input(socket, 'Ratio [1-40]'));
+    this.addInput('3', new ClassicPreset.Input(socket, 'Attack [10-0.001]'));
+    this.addInput('4', new ClassicPreset.Input(socket, 'Release [10-0.001]'));
+    this.addOutput('0', new ClassicPreset.Output(socket, 'Out'));
+  }
+}
+
 export const dubbyOuts = new DubbyAudioOutputsNode();

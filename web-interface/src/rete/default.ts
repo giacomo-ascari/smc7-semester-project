@@ -105,9 +105,11 @@ export async function createEditor(container: HTMLElement) {
           ['3 Channels', () => new Custom.DivisionNode(3)],
           ['4 Channels', () => new Custom.DivisionNode(4)],
           ['5 Channels', () => new Custom.DivisionNode(5)],
-        ]]]
-      ],
+        ]],
+        ['Scaler', () => new Custom.ScalerNode()]
+      ]],
       ['Unipolarise', () => new Custom.UnipolarsiserNode()],
+      ['Compressor', () => new Custom.CompressorNode()],
       ['Noise', () => new Custom.NoiseNode()]
     ]),
   });
