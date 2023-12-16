@@ -23,8 +23,6 @@ DspBlock * dotSwitch;
 DspBlock * noise;
 DspBlock * rhythm;
 DspBlock * lfofreq;
-DspBlock * lfo;
-
 
 DspBlock * f;
 DspBlock * sine;
@@ -32,7 +30,9 @@ DspBlock * f_lfo;
 DspBlock * lfo;
 DspBlock * amp;
 DspBlock * compressor;
+DspBlock * multibandcomp;
 
+static float * EMPTY_BUFFER;
 
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
@@ -52,22 +52,24 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
    dotSwitch->handle();
    NoteVal->handle();
    rhythm->handle();
-   lfofreq->handle();
+//    lfofreq->handle();
    lfo->handle();
    noise->handle();
     
     f->handle();
     sine->handle();
     f_lfo->handle();
-    lfo->handle();
     amp->handle();
     compressor->handle();
+    multibandcomp->handle();
   
+    EMPTY_BUFFER = new float[AUDIO_BLOCK_SIZE]();
+    
+    // dubbyAudioOuts->writeChannel({0}, 0);
+    dubbyAudioOuts->writeChannel(EMPTY_BUFFER, 0);
+    dubbyAudioOuts->writeChannel(amp->getOutputChannel(0), 1);
 
-    dubbyAudioOuts->writeChannel({0}, 0);
-    dubbyAudioOuts->writeChannel(noise->getOutputChannel(0), 1);
-
-    float * oscOut = compressor ->getOutputChannel(0);
+    float * oscOut = amp ->getOutputChannel(0);
 	
     for (size_t i = 0; i < size; i++)
 	{
@@ -98,10 +100,10 @@ int main(void)
     dubbyAudioIn = new DubbyAudioIns(AUDIO_BLOCK_SIZE);
     dubbyAudioOuts = new MultiChannelBuffer(4, AUDIO_BLOCK_SIZE);
 
-    // knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
-    // knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
-    // knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
-    // knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
+    knob1 = new KnobMap(dubby, 0, AUDIO_BLOCK_SIZE);
+    knob2 = new KnobMap(dubby, 1, AUDIO_BLOCK_SIZE);
+    knob3 = new KnobMap(dubby, 2, AUDIO_BLOCK_SIZE);
+    knob4 = new KnobMap(dubby, 3, AUDIO_BLOCK_SIZE);
 
     
    
@@ -153,6 +155,10 @@ int main(void)
     compressor = new dspblock::Compressor(AUDIO_BLOCK_SIZE);
     compressor->initialize(48000);
     compressor->setInputReference(amp->getOutputChannel(0), 0);
+
+    multibandcomp = new MBCompressor(AUDIO_BLOCK_SIZE);
+    multibandcomp->initialize(48000);
+    multibandcomp->setInputReference(amp->getOutputChannel(0), 0);
     
     
     dubby.DrawLogo(); 

@@ -520,7 +520,7 @@ namespace dspblock
     float cirBuffout[4];
     };
     
-    /* --------MultiBand Compressor---------------*/
+//     /* --------MultiBand Compressor---------------*/
 class MBCompressor : public DspBlock {
 public:
     MBCompressor(int bufferLength) : DspBlock(7, 1, bufferLength){};
