@@ -226,14 +226,14 @@ void Scaler::handle()
 {
         float oldRange = inMax - inMin;
         float newRange = outMax - outMin;
-        float *newValue;
+        float newValue;
 
         for (int sample = 0; sample < bufferLength; sample++)
         {
 
-                newValue[sample] = (((getInputReference(0)[sample] - inMin) * newRange) / oldRange) + outMin;
+                newValue = (((getInputReference(0)[sample] - inMin) * newRange) / oldRange) + outMin;
 
-                out->writeSample(newValue[sample], sample, 0);
+                out->writeSample(newValue, sample, 0);
         }
 }
 
@@ -365,192 +365,31 @@ void NoiseGen::handle()
 /* --------Compressor---------------*/
 void dspblock::Compressor::initialize(float samplerate) {
     compressor.Init(samplerate);
-    compressor.SetThreshold(-10.0f);
-    compressor.SetRatio(40.0f);
-    compressor.SetAttack(0.02f);
-    compressor.SetRelease(0.001f);
 }
 
 void dspblock::Compressor::handle() {
     float *input = getInputReference(0);
+
+    // get first sample for thr, ratio, attack and release only from the sample buffer
+    float thr = getInputReference(1)[0];
+    float ratio = getInputReference(2)[0];
+    float attack = getInputReference(3)[0];
+    float release = getInputReference(4)[0];
+
+    if (thr > 0.f) thr = 0.f; else if (thr < -80.f) thr = -80.f;
+    if (ratio > 40.f) ratio = 40.f; else if (ratio < 1.f) ratio = 1.f;
+    if (attack > 10.f) attack = 10.f; else if (attack < 0.001f) attack = 0.001f;
+    if (release > 10.f) release = 10.f; else if (release < 0.001f) release = 0.001f;
+
+    compressor.SetThreshold(thr);
+    compressor.SetRatio(ratio);
+    compressor.SetAttack(attack);
+    compressor.SetRelease(release);
+
     compressor.ProcessBlock(input, out->getChannel(0), bufferLength);
 }
 
 /* --------MultiBand Compressor---------------*/
-void MBCompressor::initialize(float samplerate) {
-    comp_band1.Init(samplerate);
-    comp_band2.Init(samplerate);
-    comp_band3.Init(samplerate);
-
-    comp_band1.SetThreshold(-80.0f);
-    comp_band2.SetThreshold(-80.0f);
-    comp_band3.SetThreshold(0.0f);
-
-    comp_band1.SetRatio(40.0f);
-    comp_band2.SetRatio(40.0f);
-    comp_band3.SetRatio(40.0f);
-
-    comp_band1.SetAttack(0.02f);
-    comp_band2.SetAttack(0.02f);
-    comp_band3.SetAttack(0.02f);
-
-    comp_band1.SetRelease(0.001f); 
-    comp_band2.SetRelease(0.001f); 
-    comp_band3.SetRelease(0.001f); 
-}
-
-void MBCompressor::handle() {
-//FILTERING EACH BAND:
-        
-        // LOWPASS FILTER
-        float *in1 = getInputReference(0);
-        float * Fc1 = getInputReference(1);
-        float * Q1 = getInputReference(2); 
-        
-        float w0=0, cosw = 0, sinw = 0, alpha = 0;
-        
-        float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
-        float fltOut=0;
-        float out1[4];
-
-        for (int sample = 0; sample < bufferLength; sample++)
-        {       
-                cirBuffin1[sample%4] = in1[sample];
-                
-
-                w0 = (2 * M_PI * Fc1[sample]) / 48000;
-                cosw = cos(w0);
-                sinw = sin(w0);
-                alpha = sinw / (2 * Q1[sample]);
-                
-                b_0 = 1 * ((1 - cosw) / 2);
-                b_1 = 1 * (1 - cosw);
-                b_2 = 1 * ((1 - cosw)/ 2);
-                
-                a_0 = 1 + alpha;
-                a_1 = -2 * cosw;
-                a_2 = 1 - alpha;
-
-                B0 = b_0/a_0;
-                B1 = b_1/a_0;
-                B2 = b_2/a_0;
-                A1 = a_1/a_0;
-                A2 = a_2/a_0;
-                
-                float n_1 = cirBuffin1[(4+sample-1)%4];
-                float n_2 = cirBuffin1[(4+sample-2)%4];
-                float yn_1 = cirBuffout1[(4 + sample - 1) % 4];
-                float yn_2 = cirBuffout1[(4 + sample - 2) % 4];
-
-                out1[sample] = in1[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
-
-                cirBuffout1[sample%4] = out1[sample];
-
-        }
-        
-
-        // BANDPASS FILTER
-        float * in2 = getInputReference(0);
-        float * Fc2 = getInputReference(3);
-        float * Q2 = getInputReference(4); 
-        
-        float out2[4];
-
-        for (int sample = 0; sample < bufferLength; sample++)
-        {       
-                cirBuffin2[sample%4] = in2[sample];
-                
-
-                w0 = (2 * M_PI * Fc2[sample]) / 48000;
-                cosw = cos(w0);
-                sinw = sin(w0);
-                alpha = sinw / (2 * Q2[sample]);
-                
-                b_0 = alpha;
-                b_1 = 0;
-                b_2 = -alpha;
-                
-                a_0 = 1 + alpha;
-                a_1 = -2 * cosw;
-                a_2 = 1 - alpha;
-
-                B0 = b_0/a_0;
-                B1 = b_1/a_0;
-                B2 = b_2/a_0;
-                A1 = a_1/a_0;
-                A2 = a_2/a_0;
-                
-                float n_1 = cirBuffin2[(4+sample-1)%4];
-                float n_2 = cirBuffin2[(4+sample-2)%4];
-                float yn_1 = cirBuffout2[(4 + sample - 1) % 4];
-                float yn_2 = cirBuffout2[(4 + sample - 2) % 4];
-
-                out2[sample] = in2[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
-
-                cirBuffout2[sample%4] = out2[sample];
-        }
-        
-
-        //HIGHPASS FILTER
-        float * in3 = getInputReference(0);
-        float * Fc3 = getInputReference(5);
-        float * Q3 = getInputReference(6); 
-        
-        float out3[4];
-
-        for (int sample = 0; sample < bufferLength; sample++)
-
-        
-        {       
-                cirBuffin3[sample%4] = in3[sample];
-                
-
-                w0 = (2 * M_PI * Fc3[sample]) / 48000;
-                cosw = cos(w0);
-                sinw = sin(w0);
-                alpha = sinw / (2 * Q3[sample]);
-                
-                b_0 = 1 * ((1 + cosw) / 2);
-                b_1 = 1 * (-(1 + cosw));
-                b_2 = 1 * ((1 + cosw)/ 2);
-                
-                a_0 = 1 + alpha;
-                a_1 = -2 * cosw;
-                a_2 = 1 - alpha;
-
-                B0 = b_0/a_0;
-                B1 = b_1/a_0;
-                B2 = b_2/a_0;
-                A1 = a_1/a_0;
-                A2 = a_2/a_0;
-                
-                float n_1 = cirBuffin3[(4+sample-1)%4];
-                float n_2 = cirBuffin3[(4+sample-2)%4];
-                float yn_1 = cirBuffout3[(4 + sample - 1) % 4];
-                float yn_2 = cirBuffout3[(4 + sample - 2) % 4];
-
-                out3[sample] = in3[sample] * B0 + n_1 * B1 + n_2 * B2  -  yn_1 * A1 - yn_2 * A2;
-
-                cirBuffout3[sample%4] = out3[sample];
-        }
-    
-
-    //CONNECTING BANDS TO COMPRESSORS
-    comp_band1.ProcessBlock(out1, out1, bufferLength);
-    comp_band2.ProcessBlock(out2, out2, bufferLength);
-    comp_band3.ProcessBlock(out3, out3, bufferLength);
-
-    // Recombine or mix the compressed bands to the output
-    float *output = out->getChannel(0);
-
-    // RECOMBINING THE 3 BANDS:
-    for (int i = 0; i < bufferLength; ++i) {
-        output[i] = out1[i] + out2[i] + out3[i];
-
-}
-
-
-}
 
 
 //----fliter----
@@ -560,8 +399,8 @@ void MBCompressor::handle() {
 void BPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
         
         
         float w0=0, cosw = 0, sinw = 0, alpha = 0;
@@ -571,13 +410,21 @@ void BPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) Fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+                
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = alpha;
                 b_1 = 0;
@@ -613,11 +460,9 @@ void BPF::handle()
 void LPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
-        
-
-
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
+              
         float w0=0, cosw = 0, sinw = 0, alpha = 0;
         
         float b_0, b_1, b_2, a_0, a_1, a_2, B0 , B1, B2, A1, A2;
@@ -625,13 +470,21 @@ void LPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) Fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = 1 * ((1 - cosw) / 2);
                 b_1 = 1 * (1 - cosw);
@@ -666,8 +519,8 @@ void LPF::handle()
 void HPF::handle()
 {       
         float * in = getInputReference(0);
-        float * Fc = getInputReference(1);
-        float * Q = getInputReference(2); 
+        float * fc = getInputReference(1);
+        float * q = getInputReference(2); 
         
        float w0=0, cosw = 0, sinw = 0, alpha = 0;
         
@@ -676,13 +529,22 @@ void HPF::handle()
 
         for (int sample = 0; sample < bufferLength; sample++)
         {       
+                float Q = q[sample];
+                if (Q > 10) Q = 10;
+                else if (Q < 0.7) Q = 0.7;
+
+                float Fc = fc[sample];
+                if (Fc < 20) Fc = 20;
+                else if (Fc > 20000) Fc = 20000;
+
+
                 cirBuffin[sample%4] = in[sample];
                 
 
-                w0 = (2 * M_PI * Fc[sample]) / 48000;
+                w0 = (2 * M_PI * Fc) / 48000;
                 cosw = cos(w0);
                 sinw = sin(w0);
-                alpha = sinw / (2 * Q[sample]);
+                alpha = sinw / (2 * Q);
                 
                 b_0 = 1 * ((1 + cosw) / 2);
                 b_1 = 1 * (-(1 + cosw));
